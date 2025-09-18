@@ -64,7 +64,7 @@ export default function JewelrySelector({ onSelectionComplete, onBack }: Jewelry
         {categories.map(category => (
           <button
             key={category.id}
-            onClick={() => setActiveCategory(category.id as any)}
+            onClick={() => setActiveCategory(category.id as 'earrings' | 'necklace' | 'bracelet' | 'ring' | 'all')}
             className={`px-4 py-2 rounded-full transition-colors ${
               activeCategory === category.id
                 ? 'bg-blue-600 text-white'

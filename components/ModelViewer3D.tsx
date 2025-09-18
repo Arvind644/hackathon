@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, useGLTF, Html } from '@react-three/drei';
 
@@ -9,19 +9,60 @@ interface ModelViewer3DProps {
   className?: string;
 }
 
+function ModelContent({ url }: { url: string }) {
+  const gltf = useGLTF(url);
+  return <primitive object={gltf.scene} scale={[1, 1, 1]} position={[0, 0, 0]} />;
+}
+
 function Model({ url }: { url: string }) {
-  try {
-    const { scene } = useGLTF(url);
-    return <primitive object={scene} scale={[1, 1, 1]} position={[0, 0, 0]} />;
-  } catch (error) {
+  const [hasError, setHasError] = React.useState(false);
+
+  React.useEffect(() => {
+    setHasError(false);
+  }, [url]);
+
+  if (hasError) {
     return (
       <Html center>
-        <div className="text-red-500 p-4 bg-white rounded">
-          Failed to load 3D model
+        <div className="text-red-500 p-4 bg-white rounded text-center max-w-sm">
+          <div className="text-lg mb-2">⚠️</div>
+          <div className="font-medium mb-2">Failed to load 3D model</div>
+          <div className="text-xs text-gray-600 mb-3">
+            Failed to load GLB file. Check if the URL is accessible and the file is a valid GLB format.
+          </div>
+          <div className="text-xs space-y-1">
+            <div>• Check if URL is accessible</div>
+            <div>• Ensure file is valid GLB format</div>
+          </div>
+          <div className="mt-3">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline text-xs"
+            >
+              Open GLB URL directly
+            </a>
+          </div>
         </div>
       </Html>
     );
   }
+
+  return (
+    <React.Suspense
+      fallback={
+        <Html center>
+          <div className="flex flex-col items-center space-y-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="text-gray-600">Loading 3D model...</div>
+          </div>
+        </Html>
+      }
+    >
+      <ModelContent url={url} />
+    </React.Suspense>
+  );
 }
 
 function LoadingSpinner() {

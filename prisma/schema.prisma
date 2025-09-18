@@ -1,0 +1,57 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model VirtualTryOn {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Original face image
+  faceImageUrl String
+
+  // Generated try-on result
+  tryOnImageUrl String
+
+  // 3D model URL (optional)
+  threeDModelUrl String?
+
+  // Jewelry items used
+  jewelryItems Json
+
+  // AI model used
+  modelUsed String
+
+  // Processing time in milliseconds
+  processingTime Int
+
+  // User session (optional for anonymous usage)
+  sessionId String?
+
+  @@map("virtual_try_ons")
+}
+
+model JewelryCollection {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  name        String
+  category    String // earrings, necklace, bracelet, ring
+  imageUrl    String
+  description String
+  price       Float?
+
+  // Track usage
+  usageCount  Int @default(0)
+
+  @@map("jewelry_collections")
+}

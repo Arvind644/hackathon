@@ -1,5 +1,5 @@
 import { fal } from "@fal-ai/client";
-import { JewelryItem, VirtualTryOnRequest } from "./types";
+import { JewelryItem, VirtualTryOnResponse } from "./types";
 
 // Configure fal.ai client
 fal.config({
@@ -72,15 +72,34 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
     let threeDModel = undefined;
     if (generate3D) {
       try {
-        // Generate 3D model using Trellis
-        const threeDResult = await fal.subscribe("fal-ai/trellis", {
+        console.log('Generating 3D model using Tripo3D...');
+        // Generate 3D model using Tripo3D
+        const threeDResult = await fal.subscribe("tripo3d/tripo/v2.5/image-to-3d", {
           input: {
-            image_url: result.data.images[0].url
+            image_url: result.data.images[0].url,
+            texture: "standard",
+            texture_alignment: "original_image",
+            orientation: "default",
+            pbr: false
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              console.log("Tripo3D generation in progress...");
+              if (update.logs) {
+                update.logs.forEach(log => console.log(log.message));
+              }
+            }
           }
         });
-        threeDModel = threeDResult.data.model_url;
+
+        if (threeDResult.data.model_mesh?.url) {
+          threeDModel = threeDResult.data.model_mesh.url;
+          console.log('3D model generated successfully:', threeDModel);
+        }
       } catch (error) {
-        console.log('3D generation failed, continuing with 2D result');
+        console.log('3D generation failed:', error);
+        console.log('Continuing with 2D result only');
       }
     }
 
@@ -99,7 +118,7 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
 }
 
 // Fallback function for testing without API key
-export function generateMockVirtualTryOn(selectedJewelry: JewelryItem[], generate3D: boolean = false) {
+export function generateMockVirtualTryOn(selectedJewelry: JewelryItem[], generate3D: boolean = false): Promise<VirtualTryOnResponse> {
   return new Promise((resolve) => {
     setTimeout(() => {
       // Mock result showing person with jewelry

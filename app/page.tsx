@@ -86,13 +86,27 @@ export default function Home() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Upload your face photo, select jewelry from our collection, and see yourself wearing it with AI magic
           </p>
+          <div className="mt-6 space-x-4">
+            <a
+              href="/viewer"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              🔮 3D Model Viewer
+            </a>
+            <a
+              href="/gallery"
+              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              📸 Try-On Gallery
+            </a>
+          </div>
         </div>
 
         {/* Progress Indicator */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="flex items-center justify-between">
-            <div className={`flex items-center space-x-2 ${appState === 'photo' ? 'text-blue-600' : appState !== 'photo' ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${appState === 'photo' ? 'bg-blue-600 text-white' : appState !== 'photo' ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
+            <div className={`flex items-center space-x-2 ${appState === 'photo' ? 'text-blue-600' : 'text-green-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${appState === 'photo' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
                 {appState !== 'photo' ? '✓' : '1'}
               </div>
               <span className="font-medium">Upload Photo</span>
