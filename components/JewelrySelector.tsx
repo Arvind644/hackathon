@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { JewelryItem } from '../lib/types';
-import { jewelryCollection } from '../lib/jewelry-data';
+import { JewelryItem } from '@/lib/types';
+import { jewelryCollection } from '@/lib/jewelry-data';
 
 interface JewelrySelectorProps {
   onSelectionComplete: (selectedItems: JewelryItem[]) => void;

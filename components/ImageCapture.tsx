@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useDropzone } from 'react-dropzone';
-import { ImageData } from '../lib/types';
+import { ImageData } from '@/lib/types';
 
 interface ImageCaptureProps {
   onImageCapture: (imageData: ImageData) => void;

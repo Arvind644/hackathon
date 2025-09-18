@@ -40,9 +40,19 @@ export function buildVirtualTryOnPrompt(selectedJewelry: JewelryItem[]): string 
 
 export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry: JewelryItem[], generate3D: boolean = false) {
   try {
+    // Validate inputs
+    if (!faceImageUrl || (!faceImageUrl.startsWith('http') && !faceImageUrl.startsWith('data:'))) {
+      throw new Error('Invalid face image URL provided');
+    }
+
+    if (!selectedJewelry || selectedJewelry.length === 0) {
+      throw new Error('No jewelry items selected');
+    }
+
     const prompt = buildVirtualTryOnPrompt(selectedJewelry);
 
     console.log('Sending virtual try-on request to fal.ai using Ideogram Character Remix...');
+    console.log('Face Image URL:', faceImageUrl);
     console.log('Prompt:', prompt);
 
     // Use Ideogram V3 Character Remix for face-preserving virtual try-on
@@ -51,10 +61,10 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
         prompt: prompt,
         image_url: faceImageUrl, // Base image for the setting/background
         reference_image_urls: [faceImageUrl], // Character reference to preserve the face
-        strength: 0.8, // How much to transform the image
+        strength: 0.7, // Reduced strength to be more conservative
         style: "REALISTIC", // Use realistic style for jewelry
         rendering_speed: "BALANCED",
-        expand_prompt: true,
+        expand_prompt: false, // Disable expand_prompt to avoid prompt modification
         num_images: 1,
         image_size: "portrait_4_3"
       },
@@ -113,7 +123,20 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
     };
   } catch (error) {
     console.error('fal.ai virtual try-on error:', error);
-    throw new Error(`Virtual try-on failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+    // Log detailed error information
+    if (error && typeof error === 'object' && 'body' in error) {
+      console.error('Error body:', error.body);
+    }
+
+    let errorMessage = 'Unknown error';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (error && typeof error === 'object' && 'body' in error) {
+      errorMessage = `API Error: ${JSON.stringify(error.body)}`;
+    }
+
+    throw new Error(`Virtual try-on failed: ${errorMessage}`);
   }
 }
 

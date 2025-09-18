@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import ImageCapture from '../components/ImageCapture';
-import JewelrySelector from '../components/JewelrySelector';
-import ResultDisplay from '../components/ResultDisplay';
-import { ImageData, JewelryItem, VirtualTryOnResponse } from '../lib/types';
+import ImageCapture from '@/components/ImageCapture';
+import JewelrySelector from '@/components/JewelrySelector';
+import ResultDisplay from '@/components/ResultDisplay';
+import { ImageData, JewelryItem, VirtualTryOnResponse } from '@/lib/types';
 
 type AppState = 'photo' | 'jewelry' | 'processing' | 'result';
 

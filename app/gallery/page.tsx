@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import TryOnGallery from '../../components/TryOnGallery';
+import TryOnGallery from '@/components/TryOnGallery';
 
 export default function GalleryPage() {
   return (

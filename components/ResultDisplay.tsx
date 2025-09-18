@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { VirtualTryOnResponse, JewelryItem } from '../lib/types';
+import { VirtualTryOnResponse, JewelryItem } from '@/lib/types';
 import ModelViewer3D from './ModelViewer3D';
 
 interface ResultDisplayProps {
