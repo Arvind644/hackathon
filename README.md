@@ -2,6 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Setup
+
+First, you'll need to set up your Fal AI API key:
+
+1. Create a `.env` file in the root directory of the project
+2. Add your Fal AI API key:
+
+```bash
+NEXT_PUBLIC_FAL_KEY=your_fal_ai_api_key_here
+```
+
+To get your Fal AI API key:
+1. Visit [Fal AI](https://fal.ai/)
+2. Sign up or log in to your account
+3. Navigate to your dashboard to generate an API key
+4. Copy the API key and paste it in your `.env` file
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash
