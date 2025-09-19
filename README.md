@@ -1,9 +1,9 @@
 
-##Goal##: Gen AI powered, celeb look & jewelry try on webapp to increase evoljewels.com's sales via booth marketing
+## Goal: Gen AI powered, celeb look & jewelry try on webapp to increase evoljewels.com's sales via booth marketing
 
-##Tech Stack##:
+## Tech Stack:
 
-##Dev Instructions##:
+## Dev Instructions:
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
