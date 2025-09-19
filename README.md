@@ -3,7 +3,8 @@
 Gen AI powered, celeb look & jewelry try on webapp to increase evoljewels.com's sales via booth marketing
 
 ## Tech Stack
-
+1. Next.JS
+2. HTML, Tailwind CSS
 
 ## Dev Instructions:
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
