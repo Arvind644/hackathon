@@ -1,0 +1,541 @@
+/* ========================================
+   Luxury Jewelry Kiosk Theme
+   Premium AI Virtual Try-On Interface
+   ======================================== */
+
+:root {
+    /* Classic Jewelry Store Color Palette */
+    --background: oklch(0.98 0.01 60);            /* Pure white */
+    --foreground: oklch(0.12 0.01 240);           /* Deep black */
+    --card: oklch(0.95 0.01 60);                  /* Off-white */
+    --card-foreground: oklch(0.12 0.01 240);      /* Deep black */
+    --popover: oklch(0.98 0.01 60);               /* Pure white */
+    --popover-foreground: oklch(0.12 0.01 240);   /* Deep black */
+    
+    /* Primary Gold Accents */
+    --primary: oklch(0.65 0.12 85);               /* Classic gold */
+    --primary-foreground: oklch(0.98 0.01 60);    /* Pure white */
+    --primary-hover: oklch(0.70 0.15 85);         /* Brighter gold */
+    --primary-light: oklch(0.80 0.08 85);         /* Light gold */
+    
+    /* Secondary Silver Accents */
+    --secondary: oklch(0.60 0.02 240);            /* Silver */
+    --secondary-foreground: oklch(0.12 0.01 240); /* Deep black */
+    --secondary-hover: oklch(0.65 0.03 240);      /* Brighter silver */
+    
+    /* Muted & Accent Colors */
+    --muted: oklch(0.85 0.01 60);                 /* Light gray */
+    --muted-foreground: oklch(0.45 0.01 240);     /* Medium gray */
+    --accent: oklch(0.90 0.01 60);                /* Light accent */
+    --accent-foreground: oklch(0.12 0.01 240);    /* Deep black */
+    
+    /* Status Colors */
+    --destructive: oklch(0.55 0.20 15);           /* Classic red */
+    --destructive-foreground: oklch(0.98 0.01 60); /* Pure white */
+    --success: oklch(0.60 0.15 140);              /* Emerald green */
+    --success-foreground: oklch(0.98 0.01 60);    /* Pure white */
+    --warning: oklch(0.65 0.12 85);               /* Gold warning */
+    --warning-foreground: oklch(0.12 0.01 240);   /* Deep black */
+    
+    /* Border & Input */
+    --border: oklch(0.80 0.01 60);                /* Light border */
+    --input: oklch(0.95 0.01 60);                 /* Input background */
+    --ring: oklch(0.65 0.12 85);                  /* Gold focus ring */
+    
+    /* Jewelry Specific Colors */
+    --diamond: oklch(0.95 0.01 240);              /* Diamond white */
+    --gold: oklch(0.75 0.15 85);                  /* Pure gold */
+    --silver: oklch(0.70 0.02 240);               /* Pure silver */
+    --rose-gold: oklch(0.75 0.12 25);             /* Rose gold */
+    --platinum: oklch(0.80 0.01 240);             /* Platinum */
+    --emerald: oklch(0.60 0.20 140);              /* Emerald green */
+    --ruby: oklch(0.55 0.25 15);                  /* Ruby red */
+    --sapphire: oklch(0.50 0.20 240);             /* Sapphire blue */
+    
+    /* Spacing & Layout */
+    --radius: 0.75rem;                            /* Rounded corners */
+    --radius-sm: 0.5rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 0.75rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+    --spacing-3xl: 3rem;
+    --spacing-4xl: 4rem;
+    
+    /* Typography */
+    --font-family: 'Playfair Display', 'Georgia', serif;
+    --font-family-sans: 'Inter', 'Helvetica Neue', sans-serif;
+    --font-family-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    --font-size-4xl: 2.25rem;
+    --font-size-5xl: 3rem;
+    --font-size-6xl: 3.75rem;
+    
+    /* Shadows & Effects */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-gold: 0 0 20px oklch(0.75 0.15 85 / 0.3);
+    --shadow-silver: 0 0 15px oklch(0.70 0.02 240 / 0.2);
+    
+    /* Gradients */
+    --gradient-gold: linear-gradient(135deg, oklch(0.70 0.15 85), oklch(0.60 0.10 85));
+    --gradient-silver: linear-gradient(135deg, oklch(0.65 0.03 240), oklch(0.55 0.01 240));
+    --gradient-diamond: linear-gradient(135deg, oklch(0.98 0.01 60), oklch(0.90 0.01 60));
+    --gradient-background: linear-gradient(135deg, oklch(0.98 0.01 60), oklch(0.95 0.01 60));
+    
+    /* Animation Timing */
+    --duration-fast: 150ms;
+    --duration-normal: 300ms;
+    --duration-slow: 500ms;
+    --duration-slower: 800ms;
+    
+    /* Easing Functions */
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ========================================
+   Base Styles
+   ======================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--gradient-background);
+    color: var(--foreground);
+    font-family: var(--font-family-sans);
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* ========================================
+   Luxury Typography
+   ======================================== */
+.luxury-heading {
+    font-family: var(--font-family);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+}
+
+.luxury-text {
+    font-family: var(--font-family-sans);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+}
+
+.text-gold {
+    color: var(--primary);
+    text-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.3);
+}
+
+.text-silver {
+    color: var(--secondary);
+}
+
+.text-diamond {
+    color: var(--diamond);
+}
+
+/* ========================================
+   Luxury Buttons
+   ======================================== */
+.btn-luxury {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-xl);
+    border-radius: var(--radius);
+    font-family: var(--font-family-sans);
+    font-weight: 600;
+    font-size: var(--font-size-base);
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+    min-height: 3rem;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-luxury::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left var(--duration-slow) var(--ease-out);
+}
+
+.btn-luxury:hover::before {
+    left: 100%;
+}
+
+.btn-gold {
+    background: var(--gradient-gold);
+    color: var(--primary-foreground);
+    border: 2px solid var(--primary);
+}
+
+.btn-gold:hover {
+    background: var(--primary-hover);
+    box-shadow: var(--shadow-gold);
+    transform: translateY(-2px);
+}
+
+.btn-silver {
+    background: var(--gradient-silver);
+    color: var(--secondary-foreground);
+    border: 2px solid var(--secondary);
+}
+
+.btn-silver:hover {
+    background: var(--secondary-hover);
+    box-shadow: var(--shadow-silver);
+    transform: translateY(-2px);
+}
+
+.btn-diamond {
+    background: var(--gradient-diamond);
+    color: var(--background);
+    border: 2px solid var(--diamond);
+}
+
+.btn-diamond:hover {
+    box-shadow: 0 0 25px oklch(0.95 0.01 240 / 0.4);
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   Luxury Cards
+   ======================================== */
+.card-luxury {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-luxury::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gradient-gold);
+    transform: scaleX(0);
+    transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.card-luxury:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary);
+}
+
+.card-luxury:hover::before {
+    transform: scaleX(1);
+}
+
+/* ========================================
+   Jewelry Product Cards
+   ======================================== */
+.jewelry-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: all var(--duration-normal) var(--ease-out);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.jewelry-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: var(--gradient-gold);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.jewelry-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-gold);
+    border-color: var(--primary);
+}
+
+.jewelry-card:hover::before {
+    opacity: 0.05;
+}
+
+.jewelry-card.selected {
+    border-color: var(--primary);
+    box-shadow: var(--shadow-gold);
+    background: oklch(0.75 0.15 85 / 0.1);
+}
+
+.jewelry-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    width: 2rem;
+    height: 2rem;
+    background: var(--primary);
+    color: var(--primary-foreground);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: var(--font-size-sm);
+}
+
+/* ========================================
+   Camera Interface
+   ======================================== */
+.camera-preview {
+    background: var(--input);
+    border: 3px dashed var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-3xl);
+    text-align: center;
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.camera-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, var(--accent) 100%);
+    opacity: 0;
+    transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.camera-preview.active {
+    border-color: var(--primary);
+    border-style: solid;
+    box-shadow: var(--shadow-gold);
+}
+
+.camera-preview.active::before {
+    opacity: 0.1;
+}
+
+.face-guide {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 250px;
+    border: 2px solid var(--primary);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    opacity: 0.7;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid var(--border);
+    border-top: 3px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-dots {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.loading-dots span {
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes bounce {
+    0%, 80%, 100% { transform: scale(0); }
+    40% { transform: scale(1); }
+}
+
+/* ========================================
+   Progress Indicators
+   ======================================== */
+.progress-bar {
+    width: 100%;
+    height: 0.5rem;
+    background: var(--muted);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--gradient-gold);
+    border-radius: var(--radius);
+    transition: width var(--duration-slow) var(--ease-out);
+    position: relative;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 1024px) {
+    .jewelry-card {
+        padding: var(--spacing-md);
+    }
+    
+    .btn-luxury {
+        padding: var(--spacing-sm) var(--spacing-lg);
+        min-height: 2.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --spacing-xl: 1rem;
+        --spacing-2xl: 1.5rem;
+        --spacing-3xl: 2rem;
+    }
+    
+    .card-luxury {
+        padding: var(--spacing-lg);
+    }
+    
+    .camera-preview {
+        padding: var(--spacing-2xl);
+    }
+    
+    .face-guide {
+        width: 150px;
+        height: 180px;
+    }
+}
+
+/* ========================================
+   Accessibility
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.focus-visible:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-sm { gap: var(--spacing-sm); }
+.gap-md { gap: var(--spacing-md); }
+.gap-lg { gap: var(--spacing-lg); }
+.gap-xl { gap: var(--spacing-xl); }
+
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.min-h-screen { min-height: 100vh; }
+
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+
+.hidden { display: none; }
+.block { display: block; }
+.inline-block { display: inline-block; }
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+

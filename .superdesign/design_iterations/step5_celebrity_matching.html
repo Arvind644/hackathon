@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Celebrity Style Matching - Evol Jewels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .back-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .header-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.5);
+        }
+
+        .step-dot.completed {
+            background: var(--success);
+        }
+
+        .match-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-2xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .match-card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-gold);
+            transform: scaleX(0);
+            transition: transform var(--duration-normal) var(--ease-out);
+        }
+
+        .match-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .match-label {
+            font-family: var(--font-family);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .match-image {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--input);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-4xl);
+            color: var(--muted-foreground);
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .match-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+        }
+
+        .match-image .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .match-info {
+            text-align: center;
+        }
+
+        .match-name {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--foreground);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .match-event {
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .similarity-bar {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--muted);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .similarity-fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            border-radius: var(--radius);
+            width: 85%;
+            transition: width var(--duration-slow) var(--ease-out);
+            position: relative;
+        }
+
+        .similarity-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .similarity-text {
+            font-size: var(--font-size-sm);
+            color: var(--muted-foreground);
+            text-align: center;
+        }
+
+        .recommendations-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .recommendation-card {
+            background: var(--accent);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            text-align: center;
+        }
+
+        .recommendation-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .recommendation-emoji {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .recommendation-name {
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .recommendation-price {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .recommendation-material {
+            font-size: var(--font-size-sm);
+            color: var(--muted-foreground);
+        }
+
+        .preferences-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .preferences-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .preference-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .preference-label {
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .style-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .style-tag {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            font-size: var(--font-size-sm);
+        }
+
+        .style-tag:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .style-tag.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .primary-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .secondary-button {
+            background: var(--gradient-silver);
+            color: var(--secondary-foreground);
+            border: 2px solid var(--secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .secondary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-silver);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .match-container {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .preferences-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .primary-button,
+            .secondary-button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Header -->
+        <header class="header">
+            <button class="back-button" onclick="goBack()">
+                <i data-lucide="arrow-left"></i>
+                Back
+            </button>
+            <h1 class="header-title">EVOL JEWELS</h1>
+            <div class="header-actions">
+                <span class="text-sm text-muted">Step 4 of 6</span>
+                <i data-lucide="sparkles" style="color: var(--primary);"></i>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <!-- Style Match Container -->
+            <div class="match-container">
+                <!-- Your Look -->
+                <div class="match-card">
+                    <div class="match-label">Your Look</div>
+                    <div class="match-image">
+                        <div class="content">
+                            <i data-lucide="user" style="width: 4rem; height: 4rem; margin-bottom: var(--spacing-sm);"></i>
+                            <div>Your Style</div>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div class="match-name">Your Personal Style</div>
+                        <div class="match-event">AI Try-On Result</div>
+                        <div class="similarity-bar">
+                            <div class="similarity-fill"></div>
+                        </div>
+                        <div class="similarity-text">85% Style Match</div>
+                    </div>
+                </div>
+
+                <!-- Celebrity Match -->
+                <div class="match-card">
+                    <div class="match-label">Celebrity Match</div>
+                    <div class="match-image">
+                        <div class="content">
+                            <i data-lucide="star" style="width: 4rem; height: 4rem; margin-bottom: var(--spacing-sm); color: var(--primary);"></i>
+                            <div>Ranveer Singh</div>
+                        </div>
+                    </div>
+                    <div class="match-info">
+                        <div class="match-name">Ranveer Singh</div>
+                        <div class="match-event">Bollywood Style Icon</div>
+                        <div class="similarity-bar">
+                            <div class="similarity-fill"></div>
+                        </div>
+                        <div class="similarity-text">"Bold & Confident"</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- More Like This Section -->
+            <div class="recommendations-section">
+                <h2 class="section-title">More Like This</h2>
+                <div class="recommendations-grid">
+                    <div class="recommendation-card" onclick="selectRecommendation(1)">
+                        <div class="recommendation-emoji">💎</div>
+                        <div class="recommendation-name">Diamond Chandeliers</div>
+                        <div class="recommendation-price">$599</div>
+                        <div class="recommendation-material">Platinum</div>
+                    </div>
+                    <div class="recommendation-card" onclick="selectRecommendation(2)">
+                        <div class="recommendation-emoji">🦪</div>
+                        <div class="recommendation-name">Pearl Statement</div>
+                        <div class="recommendation-price">$799</div>
+                        <div class="recommendation-material">Sterling Silver</div>
+                    </div>
+                    <div class="recommendation-card" onclick="selectRecommendation(3)">
+                        <div class="recommendation-emoji">💚</div>
+                        <div class="recommendation-name">Emerald Cluster</div>
+                        <div class="recommendation-price">$399</div>
+                        <div class="recommendation-material">Rose Gold</div>
+                    </div>
+                    <div class="recommendation-card" onclick="selectRecommendation(4)">
+                        <div class="recommendation-emoji">💙</div>
+                        <div class="recommendation-name">Sapphire Lariat</div>
+                        <div class="recommendation-price">$899</div>
+                        <div class="recommendation-material">White Gold</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Style Preferences -->
+            <div class="preferences-section">
+                <h2 class="section-title">Style Preferences</h2>
+                <div class="preferences-grid">
+                    <div class="preference-group">
+                        <div class="preference-label">Style Vibe</div>
+                        <div class="style-tags">
+                            <button class="style-tag active" onclick="toggleStyleTag(this)">Bold</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Confident</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Elegant</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Modern</button>
+                        </div>
+                    </div>
+                    <div class="preference-group">
+                        <div class="preference-label">Occasion</div>
+                        <div class="style-tags">
+                            <button class="style-tag active" onclick="toggleStyleTag(this)">Formal</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Party</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Casual</button>
+                            <button class="style-tag" onclick="toggleStyleTag(this)">Wedding</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="secondary-button" onclick="exploreMore()">
+                    <i data-lucide="search"></i>
+                    Explore More
+                </button>
+                <button class="primary-button" onclick="continueToPurchase()">
+                    <i data-lucide="shopping-bag"></i>
+                    Continue to Purchase
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Go back function
+        function goBack() {
+            window.location.href = 'step4_ai_tryon_results.html';
+        }
+
+        // Toggle style tag
+        function toggleStyleTag(element) {
+            element.classList.toggle('active');
+        }
+
+
+        // Select recommendation
+        function selectRecommendation(id) {
+            alert(`Selected recommendation ${id}. This would add the item to your selection.`);
+        }
+
+        // Explore more
+        function exploreMore() {
+            window.location.href = 'step3_jewelry_selection.html';
+        }
+
+        // Continue to purchase
+        function continueToPurchase() {
+            window.location.href = 'step6_purchase_journey.html';
+        }
+
+        // Animate similarity bars on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const similarityFills = document.querySelectorAll('.similarity-fill');
+                similarityFills.forEach(fill => {
+                    fill.style.width = '85%';
+                });
+            }, 500);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experience Complete - Evol Jewels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-2xl);
+        }
+
+        .completion-header {
+            margin-bottom: var(--spacing-3xl);
+        }
+
+        .completion-icon {
+            width: 6rem;
+            height: 6rem;
+            color: var(--success);
+            margin: 0 auto var(--spacing-xl);
+            animation: successBounce 1s ease-out;
+        }
+
+        @keyframes successBounce {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .completion-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-4xl);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .completion-subtitle {
+            font-size: var(--font-size-xl);
+            color: var(--muted-foreground);
+            margin-bottom: var(--spacing-2xl);
+            animation: fadeInUp 0.8s ease-out 0.5s both;
+        }
+
+        .completion-content {
+            max-width: 600px;
+            margin: 0 auto var(--spacing-3xl);
+            animation: fadeInUp 0.8s ease-out 0.7s both;
+        }
+
+        .completion-message {
+            font-size: var(--font-size-lg);
+            color: var(--foreground);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .purchase-summary {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .summary-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            color: var(--foreground);
+            font-weight: 500;
+        }
+
+        .item-price {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg) 0;
+            border-top: 2px solid var(--border);
+            margin-top: var(--spacing-lg);
+        }
+
+        .total-label {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .total-price {
+            font-family: var(--font-family);
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .next-steps {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .steps-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--accent);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .step-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            color: var(--foreground);
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .primary-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .secondary-button {
+            background: var(--gradient-silver);
+            color: var(--secondary-foreground);
+            border: 2px solid var(--secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 200px;
+            justify-content: center;
+        }
+
+        .secondary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-silver);
+        }
+
+        .footer-message {
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            animation: confettiFall 3s linear infinite;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .pulse-animation {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .kiosk-container {
+                padding: var(--spacing-lg);
+            }
+            
+            .completion-title {
+                font-size: var(--font-size-3xl);
+            }
+            
+            .completion-subtitle {
+                font-size: var(--font-size-lg);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .primary-button,
+            .secondary-button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Confetti Animation -->
+        <div class="confetti" id="confetti"></div>
+
+        <!-- Completion Header -->
+        <div class="completion-header">
+            <i data-lucide="check-circle" class="completion-icon"></i>
+            <h1 class="completion-title">Purchase Complete!</h1>
+            <p class="completion-subtitle">Thank you for choosing Evol Jewels</p>
+        </div>
+
+        <!-- Completion Content -->
+        <div class="completion-content">
+            <p class="completion-message">
+                Your luxury jewelry has been successfully ordered! We're excited to create these beautiful pieces just for you.
+            </p>
+
+            <!-- Purchase Summary -->
+            <div class="purchase-summary">
+                <h2 class="summary-title">Order Summary</h2>
+                <div class="summary-item">
+                    <span class="item-name">Diamond Stud Earrings</span>
+                    <span class="item-price">$299</span>
+                </div>
+                <div class="summary-item">
+                    <span class="item-name">Pearl Strand Necklace</span>
+                    <span class="item-price">$799</span>
+                </div>
+                <div class="summary-item">
+                    <span class="item-name">Ruby Bangle Bracelet</span>
+                    <span class="item-price">$599</span>
+                </div>
+                <div class="summary-item">
+                    <span class="item-name">Shipping & Handling</span>
+                    <span class="item-price">$25</span>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">Total</span>
+                    <span class="total-price">$1,722</span>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h2 class="steps-title">What's Next?</h2>
+                <div class="steps-list">
+                    <div class="step-item">
+                        <i data-lucide="mail" class="step-icon"></i>
+                        <span class="step-text">Order confirmation sent to your email</span>
+                    </div>
+                    <div class="step-item">
+                        <i data-lucide="package" class="step-icon"></i>
+                        <span class="step-text">Your jewelry will be crafted within 5-7 business days</span>
+                    </div>
+                    <div class="step-item">
+                        <i data-lucide="truck" class="step-icon"></i>
+                        <span class="step-text">Free insured shipping with tracking updates</span>
+                    </div>
+                    <div class="step-item">
+                        <i data-lucide="heart" class="step-icon"></i>
+                        <span class="step-text">30-day return policy for your peace of mind</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="secondary-button" onclick="startNewExperience()">
+                <i data-lucide="refresh-cw"></i>
+                Try Another Look
+            </button>
+            <button class="primary-button" onclick="viewOrderDetails()">
+                <i data-lucide="receipt"></i>
+                View Order Details
+            </button>
+        </div>
+
+        <!-- Footer Message -->
+        <p class="footer-message">
+            We appreciate your trust in Evol Jewels. Your satisfaction is our priority, and we look forward to serving you again soon.
+        </p>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Create confetti animation
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confetti');
+            const colors = ['var(--primary)', 'var(--secondary)', 'var(--success)', 'var(--warning)'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 3 + 's';
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confettiContainer.appendChild(confetti);
+            }
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                confettiContainer.innerHTML = '';
+            }, 5000);
+        }
+
+        // Start new experience
+        function startNewExperience() {
+            // Clear session storage
+            sessionStorage.clear();
+            
+            // Redirect to start
+            window.location.href = 'step1_attraction_engagement.html';
+        }
+
+        // View order details
+        function viewOrderDetails() {
+            alert('Order details would open here with tracking information and receipt');
+        }
+
+        // Auto-start confetti on page load
+        window.addEventListener('load', () => {
+            setTimeout(createConfetti, 500);
+        });
+
+        // Add pulse animation to completion icon
+        document.addEventListener('DOMContentLoaded', () => {
+            const icon = document.querySelector('.completion-icon');
+            icon.classList.add('pulse-animation');
+        });
+
+        // Auto-redirect to start after 30 seconds of inactivity
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                if (confirm('Would you like to start a new jewelry try-on experience?')) {
+                    startNewExperience();
+                }
+            }, 30000);
+        }
+
+        // Reset timer on any user interaction
+        document.addEventListener('click', resetInactivityTimer);
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keypress', resetInactivityTimer);
+        
+        // Start the timer
+        resetInactivityTimer();
+    </script>
+</body>
+</html>
+

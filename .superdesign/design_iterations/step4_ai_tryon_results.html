@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Try-On Results - Evol Jewels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .back-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .header-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .action-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted-foreground);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .action-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.5);
+        }
+
+        .step-dot.completed {
+            background: var(--success);
+        }
+
+        .results-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-2xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+
+        .image-container {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-gold);
+            transform: scaleX(0);
+            transition: transform var(--duration-normal) var(--ease-out);
+        }
+
+        .image-container:hover::before {
+            transform: scaleX(1);
+        }
+
+        .image-label {
+            font-family: var(--font-family);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .image-placeholder {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--input);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-4xl);
+            color: var(--muted-foreground);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+        }
+
+        .image-placeholder .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            margin-top: var(--spacing-xl);
+        }
+
+        .control-button {
+            background: var(--card);
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-weight: 500;
+        }
+
+        .control-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .control-button.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+
+        .jewelry-summary {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .summary-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+            text-align: center;
+        }
+
+        .jewelry-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+
+        .jewelry-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-md);
+            background: var(--accent);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .jewelry-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .jewelry-emoji {
+            font-size: var(--font-size-xl);
+        }
+
+        .jewelry-details h4 {
+            color: var(--foreground);
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .jewelry-details p {
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+        }
+
+        .jewelry-price {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .total-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: var(--spacing-lg);
+            border-top: 2px solid var(--border);
+            margin-top: var(--spacing-lg);
+        }
+
+        .total-label {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--foreground);
+        }
+
+        .total-price {
+            font-family: var(--font-family);
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .primary-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .secondary-button {
+            background: var(--gradient-silver);
+            color: var(--secondary-foreground);
+            border: 2px solid var(--secondary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 180px;
+            justify-content: center;
+        }
+
+        .secondary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-silver);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-content {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-3xl);
+            text-align: center;
+            max-width: 400px;
+            margin: var(--spacing-lg);
+        }
+
+        .loading-spinner {
+            width: 4rem;
+            height: 4rem;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--spacing-lg);
+        }
+
+        .loading-text {
+            font-size: var(--font-size-lg);
+            color: var(--foreground);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .loading-subtext {
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .results-container {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+            
+            .controls-bar {
+                flex-wrap: wrap;
+                gap: var(--spacing-md);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .primary-button,
+            .secondary-button {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Header -->
+        <header class="header">
+            <button class="back-button" onclick="goBack()">
+                <i data-lucide="arrow-left"></i>
+                Back
+            </button>
+            <h1 class="header-title">EVOL JEWELS</h1>
+            <div class="header-actions">
+                <span class="text-sm text-muted">Step 3 of 6</span>
+                <button class="action-button" onclick="saveLook()">
+                    <i data-lucide="heart"></i>
+                </button>
+                <button class="action-button" onclick="shareLook()">
+                    <i data-lucide="share-2"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <!-- Results Container -->
+            <div class="results-container">
+                <!-- Original Photo -->
+                <div class="image-container">
+                    <div class="image-label">Original Photo</div>
+                    <div class="image-placeholder">
+                        <div class="content">
+                            <i data-lucide="user" style="width: 4rem; height: 4rem; margin-bottom: var(--spacing-sm);"></i>
+                            <div>Your Photo</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Try-On Result -->
+                <div class="image-container">
+                    <div class="image-label">AI Try-On Result</div>
+                    <div class="image-placeholder">
+                        <div class="content">
+                            <i data-lucide="sparkles" style="width: 4rem; height: 4rem; margin-bottom: var(--spacing-sm); color: var(--primary);"></i>
+                            <div>With Jewelry</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Bar -->
+            <div class="controls-bar">
+                <button class="control-button" onclick="zoomImage()">
+                    <i data-lucide="zoom-in"></i>
+                    Zoom
+                </button>
+                <button class="control-button" onclick="rotateImage()">
+                    <i data-lucide="rotate-cw"></i>
+                    Rotate
+                </button>
+                <button class="control-button active" onclick="compareImages()">
+                    <i data-lucide="git-compare"></i>
+                    Compare
+                </button>
+                <button class="control-button" onclick="shareImage()">
+                    <i data-lucide="smartphone"></i>
+                    Share
+                </button>
+            </div>
+
+            <!-- Jewelry Summary -->
+            <div class="jewelry-summary">
+                <h2 class="summary-title">Selected Jewelry</h2>
+                <div class="jewelry-list" id="jewelryList">
+                    <!-- Jewelry items will be populated by JavaScript -->
+                </div>
+                <div class="total-section">
+                    <span class="total-label">Total</span>
+                    <span class="total-price" id="totalPrice">$0</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="secondary-button" onclick="tryDifferent()">
+                    <i data-lucide="refresh-cw"></i>
+                    Try Different
+                </button>
+                <button class="primary-button" onclick="addToCart()">
+                    <i data-lucide="shopping-cart"></i>
+                    Add to Cart
+                </button>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Processing Your Look</div>
+                <div class="loading-subtext">AI is creating your personalized try-on experience...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Jewelry data (same as in step 3)
+        const jewelryData = {
+            earrings: [
+                { id: 1, name: "Diamond Studs", price: 299, material: "14K Gold", emoji: "💎" },
+                { id: 2, name: "Pearl Drops", price: 199, material: "Sterling Silver", emoji: "🦪" },
+                { id: 3, name: "Ruby Hoops", price: 399, material: "18K Gold", emoji: "🔴" },
+                { id: 4, name: "Emerald Chandeliers", price: 599, material: "Platinum", emoji: "💚" },
+                { id: 5, name: "Sapphire Clusters", price: 449, material: "White Gold", emoji: "💙" },
+                { id: 6, name: "Gold Hoops", price: 149, material: "14K Gold", emoji: "🟡" }
+            ],
+            necklaces: [
+                { id: 7, name: "Pearl Strand", price: 799, material: "Sterling Silver", emoji: "🦪" },
+                { id: 8, name: "Diamond Pendant", price: 1299, material: "Platinum", emoji: "💎" },
+                { id: 9, name: "Emerald Choker", price: 899, material: "18K Gold", emoji: "💚" },
+                { id: 10, name: "Ruby Statement", price: 1099, material: "Rose Gold", emoji: "🔴" },
+                { id: 11, name: "Sapphire Lariat", price: 699, material: "White Gold", emoji: "💙" },
+                { id: 12, name: "Gold Chain", price: 299, material: "14K Gold", emoji: "🟡" }
+            ],
+            bracelets: [
+                { id: 13, name: "Diamond Tennis", price: 1999, material: "Platinum", emoji: "💎" },
+                { id: 14, name: "Pearl Strand", price: 399, material: "Sterling Silver", emoji: "🦪" },
+                { id: 15, name: "Ruby Bangle", price: 599, material: "18K Gold", emoji: "🔴" },
+                { id: 16, name: "Emerald Cuff", price: 799, material: "Rose Gold", emoji: "💚" },
+                { id: 17, name: "Sapphire Chain", price: 499, material: "White Gold", emoji: "💙" },
+                { id: 18, name: "Gold Link", price: 199, material: "14K Gold", emoji: "🟡" }
+            ],
+            rings: [
+                { id: 19, name: "Diamond Solitaire", price: 2999, material: "Platinum", emoji: "💎" },
+                { id: 20, name: "Pearl Cocktail", price: 699, material: "Sterling Silver", emoji: "🦪" },
+                { id: 21, name: "Ruby Statement", price: 899, material: "18K Gold", emoji: "🔴" },
+                { id: 22, name: "Emerald Cluster", price: 1199, material: "Rose Gold", emoji: "💚" },
+                { id: 23, name: "Sapphire Band", price: 599, material: "White Gold", emoji: "💙" },
+                { id: 24, name: "Gold Band", price: 299, material: "14K Gold", emoji: "🟡" }
+            ]
+        };
+
+        let selectedJewelry = [];
+        let totalPrice = 0;
+
+        // Initialize the page
+        function init() {
+            // Get selected jewelry from session storage
+            const storedJewelry = sessionStorage.getItem('selectedJewelry');
+            if (storedJewelry) {
+                selectedJewelry = JSON.parse(storedJewelry);
+                renderJewelryList();
+                calculateTotal();
+            } else {
+                // Default selection for demo
+                selectedJewelry = [1, 7, 15]; // Diamond Studs, Pearl Strand, Ruby Bangle
+                renderJewelryList();
+                calculateTotal();
+            }
+
+            // Show loading overlay initially
+            showLoading();
+        }
+
+        // Go back function
+        function goBack() {
+            window.location.href = 'step3_jewelry_selection.html';
+        }
+
+        // Show loading overlay
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('active');
+            
+            // Hide loading after 3 seconds
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.remove('active');
+            }, 3000);
+        }
+
+        // Render jewelry list
+        function renderJewelryList() {
+            const list = document.getElementById('jewelryList');
+            
+            if (selectedJewelry.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: var(--muted-foreground);">No jewelry selected</p>';
+                return;
+            }
+
+            list.innerHTML = selectedJewelry.map(id => {
+                const item = findJewelryById(id);
+                if (item) {
+                    return `
+                        <div class="jewelry-item">
+                            <div class="jewelry-info">
+                                <span class="jewelry-emoji">${item.emoji}</span>
+                                <div class="jewelry-details">
+                                    <h4>${item.name}</h4>
+                                    <p>${item.material}</p>
+                                </div>
+                            </div>
+                            <span class="jewelry-price">$${item.price}</span>
+                        </div>
+                    `;
+                }
+                return '';
+            }).join('');
+        }
+
+        // Find jewelry by ID
+        function findJewelryById(id) {
+            for (const category in jewelryData) {
+                const item = jewelryData[category].find(item => item.id === id);
+                if (item) return item;
+            }
+            return null;
+        }
+
+        // Calculate total price
+        function calculateTotal() {
+            totalPrice = selectedJewelry.reduce((total, id) => {
+                const item = findJewelryById(id);
+                return total + (item ? item.price : 0);
+            }, 0);
+            
+            document.getElementById('totalPrice').textContent = `$${totalPrice}`;
+        }
+
+        // Control functions
+        function zoomImage() {
+            alert('Zoom functionality would be implemented here');
+        }
+
+        function rotateImage() {
+            alert('Rotate functionality would be implemented here');
+        }
+
+        function compareImages() {
+            alert('Compare functionality would be implemented here');
+        }
+
+        function shareImage() {
+            alert('Share functionality would be implemented here');
+        }
+
+        // Action functions
+        function saveLook() {
+            alert('Look saved to your gallery!');
+        }
+
+        function shareLook() {
+            alert('Share functionality would be implemented here');
+        }
+
+        function tryDifferent() {
+            window.location.href = 'step3_jewelry_selection.html';
+        }
+
+        function addToCart() {
+            alert(`Added ${selectedJewelry.length} item(s) to cart for $${totalPrice}`);
+            // Redirect to next step
+            setTimeout(() => {
+                window.location.href = 'step5_celebrity_matching.html';
+            }, 1500);
+        }
+
+        // Initialize on page load
+        init();
+    </script>
+</body>
+</html>
+

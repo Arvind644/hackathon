@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Journey - Evol Jewels</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .back-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .header-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .gallery-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted-foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .gallery-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.5);
+        }
+
+        .step-dot.completed {
+            background: var(--success);
+        }
+
+        .saved-looks-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .saved-looks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .saved-look-card {
+            background: var(--accent);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            text-align: center;
+            position: relative;
+        }
+
+        .saved-look-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .saved-look-image {
+            width: 100%;
+            height: 120px;
+            background: var(--input);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-2xl);
+            color: var(--muted-foreground);
+            margin-bottom: var(--spacing-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .saved-look-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+        }
+
+        .saved-look-image .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .saved-look-name {
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .saved-look-price {
+            font-size: var(--font-size-lg);
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .saved-badge {
+            position: absolute;
+            top: var(--spacing-sm);
+            right: var(--spacing-sm);
+            background: var(--success);
+            color: white;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+
+        .journey-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .journey-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .journey-option {
+            background: var(--accent);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .journey-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-gold);
+            opacity: 0;
+            transition: opacity var(--duration-normal) var(--ease-out);
+        }
+
+        .journey-option:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .journey-option:hover::before {
+            opacity: 0.05;
+        }
+
+        .journey-icon {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary);
+            margin: 0 auto var(--spacing-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .journey-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--foreground);
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+            z-index: 1;
+        }
+
+        .journey-description {
+            color: var(--muted-foreground);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .journey-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .journey-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .qr-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .qr-code {
+            width: 200px;
+            height: 200px;
+            background: var(--input);
+            border-radius: var(--radius-lg);
+            margin: 0 auto var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-4xl);
+            color: var(--muted-foreground);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .qr-code::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+        }
+
+        .qr-code .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .qr-instructions {
+            color: var(--muted-foreground);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .thank-you-section {
+            text-align: center;
+            padding: var(--spacing-3xl);
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+        }
+
+        .thank-you-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-3xl);
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .thank-you-message {
+            color: var(--muted-foreground);
+            font-size: var(--font-size-lg);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .social-buttons {
+            display: flex;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .social-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted-foreground);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .social-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .saved-looks-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .journey-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .social-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .social-button {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Header -->
+        <header class="header">
+            <button class="back-button" onclick="goBack()">
+                <i data-lucide="arrow-left"></i>
+                Back
+            </button>
+            <h1 class="header-title">EVOL JEWELS</h1>
+            <div class="header-actions">
+                <span class="text-sm text-muted">Step 5 of 6</span>
+                <button class="gallery-button" onclick="viewGallery()">
+                    <i data-lucide="camera"></i>
+                    Gallery
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot completed"></div>
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <!-- Saved Looks Section -->
+            <div class="saved-looks-section">
+                <h2 class="section-title">Your Saved Looks</h2>
+                <div class="saved-looks-grid">
+                    <div class="saved-look-card" onclick="viewLook(1)">
+                        <div class="saved-badge">✓</div>
+                        <div class="saved-look-image">
+                            <div class="content">
+                                <i data-lucide="sparkles" style="width: 2rem; height: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="saved-look-name">Elegant Evening</div>
+                        <div class="saved-look-price">$498</div>
+                    </div>
+                    <div class="saved-look-card" onclick="viewLook(2)">
+                        <div class="saved-badge">✓</div>
+                        <div class="saved-look-image">
+                            <div class="content">
+                                <i data-lucide="gem" style="width: 2rem; height: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="saved-look-name">Classic Pearl</div>
+                        <div class="saved-look-price">$299</div>
+                    </div>
+                    <div class="saved-look-card" onclick="viewLook(3)">
+                        <div class="saved-badge">✓</div>
+                        <div class="saved-look-image">
+                            <div class="content">
+                                <i data-lucide="star" style="width: 2rem; height: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="saved-look-name">Celebrity Style</div>
+                        <div class="saved-look-price">$799</div>
+                    </div>
+                    <div class="saved-look-card" onclick="viewLook(4)">
+                        <div class="saved-badge">✓</div>
+                        <div class="saved-look-image">
+                            <div class="content">
+                                <i data-lucide="heart" style="width: 2rem; height: 2rem;"></i>
+                            </div>
+                        </div>
+                        <div class="saved-look-name">Romantic Gold</div>
+                        <div class="saved-look-price">$399</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Journey Options -->
+            <div class="journey-section">
+                <h2 class="section-title">Continue Your Journey</h2>
+                <div class="journey-grid">
+                    <div class="journey-option" onclick="continueMobile()">
+                        <i data-lucide="smartphone" class="journey-icon"></i>
+                        <h3 class="journey-title">Mobile Continue</h3>
+                        <p class="journey-description">
+                            Scan the QR code to continue your shopping experience on your mobile device
+                        </p>
+                        <button class="journey-button">
+                            <i data-lucide="qr-code"></i>
+                            Scan QR Code
+                        </button>
+                    </div>
+                    <div class="journey-option" onclick="purchaseNow()">
+                        <i data-lucide="shopping-bag" class="journey-icon"></i>
+                        <h3 class="journey-title">Purchase Now</h3>
+                        <p class="journey-description">
+                            Complete your purchase directly at the kiosk with our secure payment system
+                        </p>
+                        <button class="journey-button">
+                            <i data-lucide="credit-card"></i>
+                            Buy Now
+                        </button>
+                    </div>
+                    <div class="journey-option" onclick="emailResults()">
+                        <i data-lucide="mail" class="journey-icon"></i>
+                        <h3 class="journey-title">Email Results</h3>
+                        <p class="journey-description">
+                            Send your saved looks and selections to your email for later review
+                        </p>
+                        <button class="journey-button">
+                            <i data-lucide="send"></i>
+                            Send Email
+                        </button>
+                    </div>
+                    <div class="journey-option" onclick="shareWithFriends()">
+                        <i data-lucide="share-2" class="journey-icon"></i>
+                        <h3 class="journey-title">Share with Friends</h3>
+                        <p class="journey-description">
+                            Share your favorite looks with friends and family via social media
+                        </p>
+                        <button class="journey-button">
+                            <i data-lucide="users"></i>
+                            Share Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <h3 class="journey-title">Mobile Continuation</h3>
+                <div class="qr-code">
+                    <div class="content">
+                        <i data-lucide="qr-code" style="width: 4rem; height: 4rem;"></i>
+                    </div>
+                </div>
+                <p class="qr-instructions">
+                    Scan this QR code with your mobile device to continue your jewelry shopping experience. 
+                    Your saved looks and preferences will be synced automatically.
+                </p>
+            </div>
+
+            <!-- Thank You Section -->
+            <div class="thank-you-section">
+                <h2 class="thank-you-title">Thank You for Visiting Evol Jewels!</h2>
+                <p class="thank-you-message">
+                    We hope you enjoyed your AI-powered jewelry try-on experience. 
+                    Your personalized looks have been saved and you can continue shopping anytime.
+                </p>
+                <div class="social-buttons">
+                    <button class="social-button" onclick="followInstagram()">
+                        <i data-lucide="instagram"></i>
+                        Follow Us
+                    </button>
+                    <button class="social-button" onclick="joinNewsletter()">
+                        <i data-lucide="mail"></i>
+                        Newsletter
+                    </button>
+                    <button class="social-button" onclick="visitStore()">
+                        <i data-lucide="map-pin"></i>
+                        Visit Store
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Go back function
+        function goBack() {
+            window.location.href = 'step5_celebrity_matching.html';
+        }
+
+        // View gallery
+        function viewGallery() {
+            alert('Gallery view would show all saved looks in detail');
+        }
+
+        // View specific look
+        function viewLook(id) {
+            alert(`Viewing look ${id} in detail`);
+        }
+
+        // Continue on mobile
+        function continueMobile() {
+            alert('QR code scanner would open here');
+        }
+
+        // Purchase now
+        function purchaseNow() {
+            alert('Payment system would open here');
+            // Redirect to final step
+            setTimeout(() => {
+                window.location.href = 'step7_completion.html';
+            }, 1500);
+        }
+
+        // Email results
+        function emailResults() {
+            const email = prompt('Enter your email address:');
+            if (email) {
+                alert(`Your saved looks have been sent to ${email}`);
+            }
+        }
+
+        // Share with friends
+        function shareWithFriends() {
+            alert('Social sharing options would open here');
+        }
+
+        // Social actions
+        function followInstagram() {
+            alert('Opening Instagram profile...');
+        }
+
+        function joinNewsletter() {
+            const email = prompt('Enter your email for our newsletter:');
+            if (email) {
+                alert(`Thank you! You've been added to our newsletter.`);
+            }
+        }
+
+        function visitStore() {
+            alert('Opening store locator...');
+        }
+
+        // Auto-generate QR code (demo)
+        window.addEventListener('load', () => {
+            // In a real implementation, this would generate a unique QR code
+            // linking to the user's session data
+            console.log('QR code generated for mobile continuation');
+        });
+    </script>
+</body>
+</html>
+
