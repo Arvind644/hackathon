@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evol Jewels - AI Virtual Try-On Kiosk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: var(--spacing-xl) var(--spacing-2xl);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: var(--font-family);
+            font-size: var(--font-size-4xl);
+            font-weight: 700;
+            color: var(--primary);
+            text-shadow: 0 0 20px oklch(0.75 0.15 85 / 0.4);
+            margin-bottom: var(--spacing-sm);
+            animation: logoGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes logoGlow {
+            0% { text-shadow: 0 0 20px oklch(0.75 0.15 85 / 0.4); }
+            100% { text-shadow: 0 0 30px oklch(0.75 0.15 85 / 0.6), 0 0 40px oklch(0.75 0.15 85 / 0.3); }
+        }
+
+        .tagline {
+            font-size: var(--font-size-lg);
+            color: var(--muted-foreground);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-2xl);
+            position: relative;
+        }
+
+        .mirror-container {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 4/3;
+            background: var(--card);
+            border: 3px solid var(--border);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-2xl);
+            margin-bottom: var(--spacing-3xl);
+            animation: mirrorFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes mirrorFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .camera-feed {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .camera-placeholder {
+            width: 80%;
+            height: 80%;
+            background: radial-gradient(circle at center, 
+                oklch(0.20 0.03 240) 0%, 
+                oklch(0.12 0.03 240) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            animation: cameraPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes cameraPulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        .camera-icon {
+            width: 4rem;
+            height: 4rem;
+            color: var(--primary);
+            opacity: 0.6;
+            animation: iconRotate 8s linear infinite;
+        }
+
+        @keyframes iconRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .start-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 3px solid var(--primary);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl) var(--spacing-3xl);
+            font-family: var(--font-family);
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            animation: buttonPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes buttonPulse {
+            0%, 100% { transform: scale(1); box-shadow: var(--shadow-xl); }
+            50% { transform: scale(1.05); box-shadow: var(--shadow-gold); }
+        }
+
+        .start-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left var(--duration-slow) var(--ease-out);
+        }
+
+        .start-button:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .start-button:hover::before {
+            left: 100%;
+        }
+
+        .start-button:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: sparkleFloat 3s ease-in-out infinite;
+        }
+
+        .sparkle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+        .sparkle:nth-child(2) { top: 30%; right: 20%; animation-delay: 0.5s; }
+        .sparkle:nth-child(3) { bottom: 25%; left: 25%; animation-delay: 1s; }
+        .sparkle:nth-child(4) { bottom: 35%; right: 15%; animation-delay: 1.5s; }
+        .sparkle:nth-child(5) { top: 50%; left: 10%; animation-delay: 2s; }
+        .sparkle:nth-child(6) { top: 60%; right: 10%; animation-delay: 2.5s; }
+
+        @keyframes sparkleFloat {
+            0%, 100% { opacity: 0; transform: translateY(0px) scale(0); }
+            50% { opacity: 1; transform: translateY(-20px) scale(1); }
+        }
+
+        .features {
+            display: flex;
+            gap: var(--spacing-2xl);
+            margin-top: var(--spacing-3xl);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .feature-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: var(--primary);
+        }
+
+        .footer {
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: var(--font-size-3xl);
+            }
+            
+            .start-button {
+                padding: var(--spacing-lg) var(--spacing-2xl);
+                font-size: var(--font-size-xl);
+            }
+            
+            .features {
+                flex-direction: column;
+                gap: var(--spacing-lg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="logo">EVOL JEWELS</h1>
+            <p class="tagline">Luxury Redefined Through Innovation</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Mirror Display -->
+            <div class="mirror-container">
+                <div class="camera-feed">
+                    <div class="camera-placeholder">
+                        <i data-lucide="camera" class="camera-icon"></i>
+                        <!-- Sparkle Effects -->
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                        <div class="sparkle"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Start Button -->
+            <button class="start-button" onclick="startExperience()">
+                <i data-lucide="sparkles" style="width: 2rem; height: 2rem; margin-right: var(--spacing-sm);"></i>
+                TAP TO START
+                <i data-lucide="sparkles" style="width: 2rem; height: 2rem; margin-left: var(--spacing-sm);"></i>
+            </button>
+
+            <!-- Features -->
+            <div class="features">
+                <div class="feature">
+                    <i data-lucide="zap" class="feature-icon"></i>
+                    <span>8-Second AI Processing</span>
+                </div>
+                <div class="feature">
+                    <i data-lucide="camera" class="feature-icon"></i>
+                    <span>High-Quality Try-On</span>
+                </div>
+                <div class="feature">
+                    <i data-lucide="star" class="feature-icon"></i>
+                    <span>Celebrity Style Matching</span>
+                </div>
+                <div class="feature">
+                    <i data-lucide="smartphone" class="feature-icon"></i>
+                    <span>Mobile Continuation</span>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Experience luxury jewelry virtually • Powered by AI Technology</p>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Start experience function
+        function startExperience() {
+            // Add loading animation
+            const button = document.querySelector('.start-button');
+            button.innerHTML = '<i data-lucide="loader-2" style="width: 2rem; height: 2rem; animation: spin 1s linear infinite;"></i> Starting...';
+            lucide.createIcons();
+            
+            // Simulate loading and redirect
+            setTimeout(() => {
+                window.location.href = 'step2_photo_capture.html';
+            }, 1500);
+        }
+
+        // Add some interactive sparkles on hover
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() < 0.1) {
+                createSparkle(e.clientX, e.clientY);
+            }
+        });
+
+        function createSparkle(x, y) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.position = 'fixed';
+            sparkle.style.left = x + 'px';
+            sparkle.style.top = y + 'px';
+            sparkle.style.pointerEvents = 'none';
+            sparkle.style.zIndex = '1000';
+            
+            document.body.appendChild(sparkle);
+            
+            setTimeout(() => {
+                sparkle.remove();
+            }, 3000);
+        }
+
+        // Auto-start demo after 30 seconds of inactivity
+        let inactivityTimer;
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                if (confirm('Would you like to start the jewelry try-on experience?')) {
+                    startExperience();
+                }
+            }, 30000);
+        }
+
+        // Reset timer on any user interaction
+        document.addEventListener('click', resetInactivityTimer);
+        document.addEventListener('mousemove', resetInactivityTimer);
+        document.addEventListener('keypress', resetInactivityTimer);
+        
+        // Start the timer
+        resetInactivityTimer();
+    </script>
+</body>
+</html>
+

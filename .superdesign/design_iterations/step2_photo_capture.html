@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Capture - Evol Jewels AI Try-On</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="luxury_jewelry_theme.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        .kiosk-container {
+            min-height: 100vh;
+            background: var(--gradient-background);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .back-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .header-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .help-button {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--muted-foreground);
+            padding: var(--spacing-sm);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .help-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-2xl);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-2xl);
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .step-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .step-dot.active {
+            background: var(--primary);
+            box-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.5);
+        }
+
+        .step-dot.completed {
+            background: var(--success);
+        }
+
+        .camera-container {
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4/3;
+            background: var(--card);
+            border: 3px solid var(--border);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .camera-preview {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                oklch(0.12 0.03 240) 0%, 
+                oklch(0.15 0.04 240) 50%, 
+                oklch(0.12 0.03 240) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .camera-preview:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .face-guide {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 250px;
+            border: 2px solid var(--primary);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0.7;
+            animation: faceGuidePulse 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes faceGuidePulse {
+            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity var(--duration-normal) var(--ease-out);
+        }
+
+        .camera-preview:hover .camera-overlay {
+            opacity: 1;
+        }
+
+        .camera-icon {
+            width: 3rem;
+            height: 3rem;
+            color: var(--primary);
+        }
+
+        .capture-controls {
+            display: flex;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-xl);
+        }
+
+        .capture-button {
+            background: var(--gradient-gold);
+            color: var(--primary-foreground);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .capture-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .capture-button:active {
+            transform: translateY(0);
+        }
+
+        .upload-button {
+            background: var(--gradient-silver);
+            color: var(--secondary-foreground);
+            border: 2px solid var(--secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-silver);
+        }
+
+        .tips-button {
+            background: transparent;
+            color: var(--muted-foreground);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg) var(--spacing-2xl);
+            font-family: var(--font-family-sans);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            min-width: 150px;
+            justify-content: center;
+        }
+
+        .tips-button:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .instructions {
+            text-align: center;
+            color: var(--muted-foreground);
+            font-size: var(--font-size-base);
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .drag-drop-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-xl);
+            background: oklch(0.75 0.15 85 / 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity var(--duration-normal) var(--ease-out);
+            pointer-events: none;
+        }
+
+        .camera-container.drag-over .drag-drop-zone {
+            opacity: 1;
+        }
+
+        .drag-text {
+            color: var(--primary);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .tips-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .tips-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .tips-content {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            max-width: 500px;
+            margin: var(--spacing-lg);
+            box-shadow: var(--shadow-2xl);
+            transform: scale(0.9);
+            transition: transform var(--duration-normal) var(--ease-out);
+        }
+
+        .tips-modal.active .tips-content {
+            transform: scale(1);
+        }
+
+        .tips-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tips-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .close-button {
+            background: transparent;
+            border: none;
+            color: var(--muted-foreground);
+            cursor: pointer;
+            padding: var(--spacing-sm);
+            border-radius: var(--radius);
+            transition: all var(--duration-normal) var(--ease-out);
+        }
+
+        .close-button:hover {
+            color: var(--primary);
+            background: var(--accent);
+        }
+
+        .tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .tip-icon {
+            width: 1.5rem;
+            height: 1.5rem;
+            color: var(--primary);
+            margin-top: 0.125rem;
+            flex-shrink: 0;
+        }
+
+        .tip-text {
+            color: var(--foreground);
+            line-height: 1.6;
+        }
+
+        .price-filter-section {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+
+        .filter-title {
+            font-family: var(--font-family);
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .price-filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            align-items: center;
+        }
+
+        .price-range-slider {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .price-slider {
+            width: 100%;
+            height: 0.5rem;
+            background: var(--muted);
+            border-radius: var(--radius);
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .price-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+        }
+
+        .price-slider::-moz-range-thumb {
+            width: 1.5rem;
+            height: 1.5rem;
+            background: var(--primary);
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .price-labels {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted-foreground);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .price-labels span:nth-child(2) {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: var(--font-size-base);
+        }
+
+        .price-presets {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .price-preset {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--foreground);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all var(--duration-normal) var(--ease-out);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .price-preset:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .price-preset.active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: var(--spacing-md) var(--spacing-lg);
+            }
+            
+            .main-content {
+                padding: var(--spacing-lg);
+            }
+            
+            .capture-controls {
+                flex-direction: column;
+                gap: var(--spacing-lg);
+            }
+            
+            .capture-button,
+            .upload-button,
+            .tips-button {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kiosk-container">
+        <!-- Header -->
+        <header class="header">
+            <button class="back-button" onclick="goBack()">
+                <i data-lucide="arrow-left"></i>
+                Back
+            </button>
+            <h1 class="header-title">EVOL JEWELS</h1>
+            <div class="header-actions">
+                <span class="text-sm text-muted">Step 1 of 6</span>
+                <button class="help-button" onclick="showTips()">
+                    <i data-lucide="help-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step-dot active"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+                <div class="step-dot"></div>
+            </div>
+
+            <!-- Camera Container -->
+            <div class="camera-container" id="cameraContainer">
+                <div class="camera-preview" onclick="capturePhoto()">
+                    <div class="face-guide"></div>
+                    <div class="camera-overlay">
+                        <i data-lucide="camera" class="camera-icon"></i>
+                    </div>
+                </div>
+                <div class="drag-drop-zone">
+                    <div class="drag-text">
+                        <i data-lucide="upload" style="width: 2rem; height: 2rem; margin-bottom: var(--spacing-sm);"></i>
+                        <br>Drop your photo here
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capture Controls -->
+            <div class="capture-controls">
+                <button class="capture-button" onclick="capturePhoto()">
+                    <i data-lucide="camera"></i>
+                    Take Photo
+                </button>
+                <button class="upload-button" onclick="uploadPhoto()">
+                    <i data-lucide="upload"></i>
+                    Upload Photo
+                </button>
+                <button class="tips-button" onclick="showTips()">
+                    <i data-lucide="lightbulb"></i>
+                    Tips
+                </button>
+            </div>
+
+            <!-- Price Filter Section -->
+            <div class="price-filter-section">
+                <h3 class="filter-title">Set Your Budget</h3>
+                <div class="price-filter-container">
+                    <div class="price-range-slider">
+                        <input type="range" id="priceRange" min="100" max="3000" value="1000" 
+                               oninput="updatePriceDisplay(this.value)" class="price-slider">
+                        <div class="price-labels">
+                            <span>$100</span>
+                            <span id="currentPriceDisplay">$1000</span>
+                            <span>$3000+</span>
+                        </div>
+                    </div>
+                    <div class="price-presets">
+                        <button class="price-preset" onclick="setPriceRange(500)">Under $500</button>
+                        <button class="price-preset" onclick="setPriceRange(1000)">Under $1000</button>
+                        <button class="price-preset" onclick="setPriceRange(2000)">Under $2000</button>
+                        <button class="price-preset" onclick="setPriceRange(3000)">All Prices</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <p class="instructions">
+                Position your face within the guides for the best AI try-on results. 
+                Ensure good lighting and a clear view of your face and neck area.
+            </p>
+
+            <!-- Hidden File Input -->
+            <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleFileUpload(event)">
+        </main>
+
+        <!-- Tips Modal -->
+        <div class="tips-modal" id="tipsModal">
+            <div class="tips-content">
+                <div class="tips-header">
+                    <h2 class="tips-title">Photo Tips</h2>
+                    <button class="close-button" onclick="hideTips()">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="tip-item">
+                    <i data-lucide="sun" class="tip-icon"></i>
+                    <p class="tip-text">Use good lighting - natural light or bright indoor lighting works best</p>
+                </div>
+                <div class="tip-item">
+                    <i data-lucide="user" class="tip-icon"></i>
+                    <p class="tip-text">Position your face within the oval guide for optimal jewelry placement</p>
+                </div>
+                <div class="tip-item">
+                    <i data-lucide="eye" class="tip-icon"></i>
+                    <p class="tip-text">Look directly at the camera with a neutral expression</p>
+                </div>
+                <div class="tip-item">
+                    <i data-lucide="camera" class="tip-icon"></i>
+                    <p class="tip-text">Keep your head straight and avoid tilting or turning</p>
+                </div>
+                <div class="tip-item">
+                    <i data-lucide="shield-check" class="tip-icon"></i>
+                    <p class="tip-text">Ensure your face and neck area are clearly visible</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Go back function
+        function goBack() {
+            window.location.href = 'step1_attraction_engagement.html';
+        }
+
+        // Capture photo function
+        function capturePhoto() {
+            // Simulate camera capture
+            const cameraPreview = document.querySelector('.camera-preview');
+            cameraPreview.style.background = 'linear-gradient(45deg, #1a1a2e, #16213e)';
+            cameraPreview.innerHTML = '<div style="color: var(--primary); font-size: 1.5rem; text-align: center;">📸 Photo Captured!</div>';
+            
+            // Add loading animation
+            setTimeout(() => {
+                cameraPreview.innerHTML = '<div style="color: var(--success); font-size: 1.5rem; text-align: center;">✅ Processing...</div>';
+                
+                // Redirect to next step after processing
+                setTimeout(() => {
+                    window.location.href = 'step3_jewelry_selection.html';
+                }, 2000);
+            }, 1000);
+        }
+
+        // Upload photo function
+        function uploadPhoto() {
+            document.getElementById('fileInput').click();
+        }
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const cameraPreview = document.querySelector('.camera-preview');
+                    cameraPreview.style.background = `url(${e.target.result}) center/cover`;
+                    cameraPreview.innerHTML = '<div style="color: var(--success); font-size: 1.5rem; text-align: center; background: rgba(0,0,0,0.7); padding: 1rem; border-radius: 0.5rem;">✅ Photo Uploaded!</div>';
+                    
+                    // Process and redirect
+                    setTimeout(() => {
+                        window.location.href = 'step3_jewelry_selection.html';
+                    }, 1500);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Show tips modal
+        function showTips() {
+            document.getElementById('tipsModal').classList.add('active');
+        }
+
+        // Hide tips modal
+        function hideTips() {
+            document.getElementById('tipsModal').classList.remove('active');
+        }
+
+        // Drag and drop functionality
+        const cameraContainer = document.getElementById('cameraContainer');
+
+        cameraContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            cameraContainer.classList.add('drag-over');
+        });
+
+        cameraContainer.addEventListener('dragleave', () => {
+            cameraContainer.classList.remove('drag-over');
+        });
+
+        cameraContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            cameraContainer.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const cameraPreview = document.querySelector('.camera-preview');
+                        cameraPreview.style.background = `url(${e.target.result}) center/cover`;
+                        cameraPreview.innerHTML = '<div style="color: var(--success); font-size: 1.5rem; text-align: center; background: rgba(0,0,0,0.7); padding: 1rem; border-radius: 0.5rem;">✅ Photo Dropped!</div>';
+                        
+                        setTimeout(() => {
+                            window.location.href = 'step3_jewelry_selection.html';
+                        }, 1500);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('tipsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'tipsModal') {
+                hideTips();
+            }
+        });
+
+        // Price filter functions
+        function updatePriceDisplay(value) {
+            document.getElementById('currentPriceDisplay').textContent = `$${value}`;
+            // Store price preference in session storage
+            sessionStorage.setItem('pricePreference', value);
+        }
+
+        function setPriceRange(maxPrice) {
+            const slider = document.getElementById('priceRange');
+            slider.value = maxPrice;
+            updatePriceDisplay(maxPrice);
+            
+            // Update active preset button
+            document.querySelectorAll('.price-preset').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        // Initialize price filter
+        function initPriceFilter() {
+            const savedPrice = sessionStorage.getItem('pricePreference');
+            if (savedPrice) {
+                document.getElementById('priceRange').value = savedPrice;
+                updatePriceDisplay(savedPrice);
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideTips();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                capturePhoto();
+            }
+        });
+
+        // Initialize price filter on page load
+        initPriceFilter();
+    </script>
+</body>
+</html>
+
