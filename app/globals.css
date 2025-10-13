@@ -1,26 +1,266 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* Luxury Jewelry Kiosk Theme - Based on Design Mockups */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+:root {
+  /* Classic Jewelry Store Color Palette */
+  --background: oklch(0.98 0.01 60);
+  --foreground: oklch(0.12 0.01 240);
+  --card: oklch(0.95 0.01 60);
+  --card-foreground: oklch(0.12 0.01 240);
+  --popover: oklch(0.98 0.01 60);
+  --popover-foreground: oklch(0.12 0.01 240);
+
+  /* Primary Gold Accents */
+  --primary: oklch(0.65 0.12 85);
+  --primary-foreground: oklch(0.98 0.01 60);
+  --primary-hover: oklch(0.70 0.15 85);
+  --primary-light: oklch(0.80 0.08 85);
+
+  /* Secondary Silver Accents */
+  --secondary: oklch(0.60 0.02 240);
+  --secondary-foreground: oklch(0.12 0.01 240);
+  --secondary-hover: oklch(0.65 0.03 240);
+
+  /* Muted & Accent Colors */
+  --muted: oklch(0.85 0.01 60);
+  --muted-foreground: oklch(0.45 0.01 240);
+  --accent: oklch(0.90 0.01 60);
+  --accent-foreground: oklch(0.12 0.01 240);
+
+  /* Status Colors */
+  --destructive: oklch(0.55 0.20 15);
+  --destructive-foreground: oklch(0.98 0.01 60);
+  --success: oklch(0.60 0.15 140);
+  --success-foreground: oklch(0.98 0.01 60);
+  --warning: oklch(0.65 0.12 85);
+  --warning-foreground: oklch(0.12 0.01 240);
+
+  /* Border & Input */
+  --border: oklch(0.80 0.01 60);
+  --input: oklch(0.95 0.01 60);
+  --ring: oklch(0.65 0.12 85);
+
+  /* Jewelry Specific Colors */
+  --diamond: oklch(0.95 0.01 240);
+  --gold: oklch(0.75 0.15 85);
+  --silver: oklch(0.70 0.02 240);
+  --rose-gold: oklch(0.75 0.12 25);
+  --platinum: oklch(0.80 0.01 240);
+  --emerald: oklch(0.60 0.20 140);
+  --ruby: oklch(0.55 0.25 15);
+  --sapphire: oklch(0.50 0.20 240);
+
+  /* Shadows & Effects */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-gold: 0 0 20px oklch(0.75 0.15 85 / 0.3);
+  --shadow-silver: 0 0 15px oklch(0.70 0.02 240 / 0.2);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme inline {
+  --color-*: initial;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Luxury Button Styles */
+.btn-luxury {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-height: 3rem;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.btn-luxury:hover::before {
+  left: 100%;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, oklch(0.70 0.15 85), oklch(0.60 0.10 85));
+  color: var(--primary-foreground);
+  border: 2px solid var(--primary);
+}
+
+.btn-gold:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-silver {
+  background: linear-gradient(135deg, oklch(0.65 0.03 240), oklch(0.55 0.01 240));
+  color: var(--secondary-foreground);
+  border: 2px solid var(--secondary);
+}
+
+.btn-silver:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-silver);
+}
+
+/* Luxury Card Styles */
+.card-luxury {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.card-luxury::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(135deg, oklch(0.70 0.15 85), oklch(0.60 0.10 85));
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0, 0, 0.2, 1);
+}
+
+.card-luxury:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--primary);
+}
+
+.card-luxury:hover::before {
+  transform: scaleX(1);
+}
+
+/* Gradient Backgrounds */
+.gradient-gold {
+  background: linear-gradient(135deg, oklch(0.70 0.15 85), oklch(0.60 0.10 85));
+}
+
+.gradient-silver {
+  background: linear-gradient(135deg, oklch(0.65 0.03 240), oklch(0.55 0.01 240));
+}
+
+.gradient-background {
+  background: linear-gradient(135deg, oklch(0.98 0.01 60), oklch(0.95 0.01 60));
+}
+
+/* Text Gradients */
+.text-gold {
+  color: var(--primary);
+  text-shadow: 0 0 10px oklch(0.75 0.15 85 / 0.3);
+}
+
+/* Animations */
+@keyframes logoGlow {
+  0% { text-shadow: 0 0 20px oklch(0.75 0.15 85 / 0.4); }
+  100% { text-shadow: 0 0 30px oklch(0.75 0.15 85 / 0.6), 0 0 40px oklch(0.75 0.15 85 / 0.3); }
+}
+
+.animate-logo-glow {
+  animation: logoGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes mirrorFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-mirror-float {
+  animation: mirrorFloat 6s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-button-pulse {
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes sparkleFloat {
+  0%, 100% { opacity: 0; transform: translateY(0px) scale(0); }
+  50% { opacity: 1; transform: translateY(-20px) scale(1); }
+}
+
+.animate-sparkle {
+  animation: sparkleFloat 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus Visible */
+.focus-visible:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
