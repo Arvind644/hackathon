@@ -1,36 +1,131 @@
-'use client';
+﻿'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import { useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-const savedLooks = [
-  { id: 1, name: "Elegant Evening", price: 498, emoji: "✨" },
-  { id: 2, name: "Classic Pearl", price: 299, emoji: "💎" },
-  { id: 3, name: "Celebrity Style", price: 799, emoji: "⭐" },
-  { id: 4, name: "Romantic Gold", price: 399, emoji: "💛" }
-];
+import { useKioskJourney } from '@/components/KioskJourneyProvider';
+import { jewelryCollection } from '@/lib/jewelry-data';
+
+const SHIPPING_FEE = 25;
 
 export default function PurchaseJourneyPage() {
   const router = useRouter();
+  const { selectedJewelry, hydrateComplete, lastTryOn, sessionId, faceImage } = useKioskJourney();
   const [showQR, setShowQR] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
+  const [emailAddress, setEmailAddress] = useState('');
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!hydrateComplete) {
+      return;
+    }
+    if (selectedJewelry.length === 0) {
+      router.replace('/kiosk/jewelry');
+    }
+  }, [hydrateComplete, selectedJewelry, router]);
+
+  const subtotal = useMemo(
+    () => selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0),
+    [selectedJewelry]
+  );
+  const shipping = selectedJewelry.length ? SHIPPING_FEE : 0;
+  const total = subtotal + shipping;
+  const formattedSubtotal = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(subtotal);
+  const formattedTotal = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(total);
 
   const handlePurchaseNow = () => {
     router.push('/kiosk/complete');
   };
 
+  const handleOpenEmailModal = () => {
+    setEmailAddress('');
+    setEmailStatus('idle');
+    setEmailError(null);
+    setShowEmail(true);
+  };
+
+  const handleCloseEmailModal = () => {
+    setShowEmail(false);
+    setEmailStatus('idle');
+    setEmailError(null);
+  };
+
+  const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedJewelry.length) {
+      setEmailError('Select jewelry before emailing your cart.');
+      return;
+    }
+
+    const trimmed = emailAddress.trim();
+    if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setEmailError('Enter a valid email address.');
+      return;
+    }
+
+    setEmailStatus('sending');
+    setEmailError(null);
+
+    try {
+      const response = await fetch('/api/order-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: trimmed,
+          subtotal,
+          shipping,
+          total,
+          selectedJewelry,
+          tryOnImage: lastTryOn?.tryOnImage,
+          faceImage,
+          sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error ?? 'Failed to send email');
+      }
+
+      setEmailStatus('success');
+      setTimeout(() => {
+        handleCloseEmailModal();
+      }, 1200);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to send email';
+      setEmailStatus('error');
+      setEmailError(message);
+    }
+  };
+
   return (
     <div className="min-h-screen gradient-background flex flex-col">
-      {/* Header */}
       <header className="p-4 lg:p-6 bg-card border-b border-border flex items-center justify-between">
-        <Link href="/kiosk/celebrity" className="flex items-center gap-2 px-4 py-2 border-2 border-border rounded-lg hover:border-primary transition-colors">
+        <Link
+          href="/kiosk/celebrity"
+          className="flex items-center gap-2 px-4 py-2 border-2 border-border rounded-lg hover:border-primary transition-colors"
+        >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back
         </Link>
-        <h1 className="text-xl lg:text-2xl font-semibold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+        <h1
+          className="text-xl lg:text-2xl font-semibold text-gold"
+          style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+        >
           EVOL JEWELS
         </h1>
         <div className="flex items-center gap-3">
@@ -44,9 +139,7 @@ export default function PurchaseJourneyPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 p-6 lg:p-12 flex flex-col gap-8">
-        {/* Step Indicator */}
         <div className="flex items-center gap-2 justify-center">
           <div className="w-3 h-3 rounded-full bg-success"></div>
           <div className="w-3 h-3 rounded-full bg-success"></div>
@@ -56,133 +149,175 @@ export default function PurchaseJourneyPage() {
           <div className="w-3 h-3 rounded-full bg-muted"></div>
         </div>
 
-        {/* Saved Looks Section */}
         <div className="card-luxury max-w-5xl mx-auto w-full">
-          <h2 className="text-2xl font-semibold text-gold text-center mb-8" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+          <h2
+            className="text-2xl font-semibold text-gold text-center mb-8"
+            style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+          >
             Your Saved Looks
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {savedLooks.map(look => (
+            {(selectedJewelry.length ? selectedJewelry : jewelryCollection.slice(0, 4)).map((item) => (
               <div
-                key={look.id}
+                key={item.id}
                 className="bg-accent/50 border-2 border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 relative"
               >
-                <div className="absolute top-2 right-2 w-6 h-6 bg-success text-white rounded-full flex items-center justify-center text-xs font-bold">
-                  ✓
+                <div className="w-full h-32 bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-lg flex items-center justify-center overflow-hidden mb-3">
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="w-full h-32 bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-lg flex items-center justify-center text-4xl mb-3">
-                  {look.emoji}
-                </div>
-                <h4 className="font-semibold mb-1">{look.name}</h4>
-                <p className="text-lg font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  ${look.price}
-                </p>
+                <h4 className="font-semibold mb-1">{item.name}</h4>
+                {typeof item.price === 'number' && (
+                  <p
+                    className="text-lg font-bold text-gold"
+                    style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+                  >
+                    ${item.price}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Journey Options */}
         <div className="card-luxury max-w-5xl mx-auto w-full">
-          <h2 className="text-2xl font-semibold text-gold text-center mb-8" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+          <h2
+            className="text-2xl font-semibold text-gold text-center mb-8"
+            style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+          >
             Continue Your Journey
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Mobile Continue */}
             <div className="bg-accent/50 border-2 border-border rounded-xl p-8 text-center hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 cursor-pointer relative overflow-hidden group">
               <div className="absolute inset-0 gradient-gold opacity-0 group-hover:opacity-5 transition-opacity"></div>
               <svg className="w-16 h-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
-              <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                Mobile Continue
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Scan the QR code to continue your shopping experience on your mobile device
-              </p>
-              <button
-                onClick={() => setShowQR(true)}
-                className="btn-luxury btn-gold w-full"
-              >
+              <h3 className="text-xl font-semibold mb-2">Save to Mobile</h3>
+              <p className="text-sm text-muted-foreground mb-6">Continue browsing on your phone with synced cart and try-on history.</p>
+              <button onClick={() => setShowQR(true)} className="btn-luxury btn-gold inline-flex items-center gap-2">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />
                 </svg>
-                Scan QR Code
+                Generate QR
               </button>
             </div>
-
-            {/* Purchase Now */}
             <div className="bg-accent/50 border-2 border-border rounded-xl p-8 text-center hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 cursor-pointer relative overflow-hidden group">
               <div className="absolute inset-0 gradient-gold opacity-0 group-hover:opacity-5 transition-opacity"></div>
               <svg className="w-16 h-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0z" />
               </svg>
-              <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                Purchase Now
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Complete your purchase directly at the kiosk with our secure payment system
-              </p>
+              <h3 className="text-xl font-semibold mb-2">Email My Lookbook</h3>
+              <p className="text-sm text-muted-foreground mb-6">Receive links to your try-on results and selected pieces.</p>
               <button
-                onClick={handlePurchaseNow}
-                className="btn-luxury btn-gold w-full"
+                onClick={handleOpenEmailModal}
+                className="btn-luxury btn-gold inline-flex items-center gap-2"
+                disabled={!selectedJewelry.length}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8" />
                 </svg>
-                Buy Now
-              </button>
-            </div>
-
-            {/* Email Results */}
-            <div className="bg-accent/50 border-2 border-border rounded-xl p-8 text-center hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 cursor-pointer relative overflow-hidden group">
-              <div className="absolute inset-0 gradient-gold opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <svg className="w-16 h-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                Email Results
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Send your saved looks and selections to your email for later review
-              </p>
-              <button
-                onClick={() => setShowEmail(true)}
-                className="btn-luxury btn-gold w-full"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Send Email
-              </button>
-            </div>
-
-            {/* Share */}
-            <div className="bg-accent/50 border-2 border-border rounded-xl p-8 text-center hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 cursor-pointer relative overflow-hidden group">
-              <div className="absolute inset-0 gradient-gold opacity-0 group-hover:opacity-5 transition-opacity"></div>
-              <svg className="w-16 h-16 text-primary mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-              </svg>
-              <h3 className="text-xl font-semibold mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                Share with Friends
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Share your favorite looks with friends and family via social media
-              </p>
-              <button className="btn-luxury btn-gold w-full">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                Share Now
+                Share via Email
               </button>
             </div>
           </div>
         </div>
 
-        {/* QR Code Section */}
+        <div className="card-luxury max-w-3xl mx-auto w-full">
+          <h2
+            className="text-xl font-semibold text-gold text-center mb-6"
+            style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+          >
+            Checkout Summary
+          </h2>
+          <div className="space-y-3 mb-6">
+            {selectedJewelry.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border border-border">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-input">
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold">{item.name}</h4>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">{item.category}</p>
+                  </div>
+                </div>
+                <span
+                  className="text-lg font-bold text-gold"
+                  style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+                >
+                  ${item.price ?? 0}
+                </span>
+              </div>
+            ))}
+            {selectedJewelry.length === 0 && (
+              <div className="text-center text-muted-foreground py-6">
+                Add jewelry to your cart to see pricing details.
+              </div>
+            )}
+          </div>
+          {selectedJewelry.length > 0 && (
+            <div className="space-y-2 border-t-2 border-border pt-4">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>{formattedSubtotal}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>Shipping</span>
+                <span>${SHIPPING_FEE}</span>
+              </div>
+              <div className="flex items-center justify-between pt-3">
+                <span className="text-xl font-semibold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                  Total Due Today
+                </span>
+                <span className="text-3xl font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                  {formattedTotal}
+                </span>
+              </div>
+              <button onClick={handlePurchaseNow} className="btn-luxury btn-gold w-full mt-4 text-lg">
+                Complete Purchase
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="card-luxury max-w-5xl mx-auto w-full">
+          <h2
+            className="text-2xl font-semibold text-gold text-center mb-8"
+            style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+          >
+            Share or Download
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <button className="bg-accent/50 border-2 border-border rounded-xl p-6 text-left hover:border-primary transition-colors">
+              <svg className="w-6 h-6 text-primary mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7a2 2 0 00-2-2h-5l-2-2h-5a2 2 0 00-2 2z" />
+              </svg>
+              <h4 className="font-semibold mb-1">Download Lookbook</h4>
+              <p className="text-sm text-muted-foreground">Save a branded PDF with your selected pieces and pricing summary.</p>
+            </button>
+            <button className="bg-accent/50 border-2 border-border rounded-xl p-6 text-left hover:border-primary transition-colors">
+              <svg className="w-6 h-6 text-primary mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              <h4 className="font-semibold mb-1">Reserve In Store</h4>
+              <p className="text-sm text-muted-foreground">Book a showroom appointment with this cart reserved for 24 hours.</p>
+            </button>
+            <button className="bg-accent/50 border-2 border-border rounded-xl p-6 text-left hover:border-primary transition-colors">
+              <svg className="w-6 h-6 text-primary mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m2-2l1.586-1.586a2 2 0 012.828 0L22 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <h4 className="font-semibold mb-1">Share to Social</h4>
+              <p className="text-sm text-muted-foreground">Generate a story-ready collage with your AI try-on and cart picks.</p>
+            </button>
+          </div>
+        </div>
+
         {showQR && (
           <div className="card-luxury max-w-md mx-auto w-full text-center">
-            <h3 className="text-xl font-semibold text-gold mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+            <h3
+              className="text-xl font-semibold text-gold mb-6"
+              style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+            >
               Mobile Continuation
             </h3>
             <div className="w-48 h-48 bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl mx-auto mb-6 flex items-center justify-center">
@@ -200,62 +335,47 @@ export default function PurchaseJourneyPage() {
           </div>
         )}
 
-        {/* Thank You Section */}
-        <div className="card-luxury max-w-3xl mx-auto w-full text-center">
-          <h2 className="text-3xl font-bold text-gold mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            Thank You for Visiting Evol Jewels!
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            We hope you enjoyed your AI-powered jewelry try-on experience.
-            Your personalized looks have been saved and you can continue shopping anytime.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Follow Us
-            </button>
-            <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Newsletter
-            </button>
-            <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Visit Store
-            </button>
-          </div>
-        </div>
-      </main>
-
-      {/* Email Modal */}
-      {showEmail && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setShowEmail(false)}>
-          <div className="bg-card rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-2xl font-semibold text-gold mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              Email Your Results
-            </h3>
-            <input
-              type="email"
-              placeholder="Enter your email address"
-              className="w-full px-4 py-3 border-2 border-border rounded-lg bg-input mb-4 focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <div className="flex gap-3">
-              <button onClick={() => setShowEmail(false)} className="flex-1 px-6 py-3 border-2 border-border rounded-lg hover:border-primary transition-colors">
-                Cancel
-              </button>
-              <button className="flex-1 btn-luxury btn-gold">
-                Send
-              </button>
+        {showEmail && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={handleCloseEmailModal}>
+            <div className="bg-card rounded-2xl p-8 max-w-md w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+              <h3
+                className="text-2xl font-semibold text-gold mb-6"
+                style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
+              >
+                Email Your Results
+              </h3>
+              <form onSubmit={handleEmailSubmit} className="space-y-4">
+                <input
+                  type="email"
+                  value={emailAddress}
+                  onChange={(event) => setEmailAddress(event.target.value)}
+                  placeholder="Enter your email address"
+                  className="w-full px-4 py-3 border-2 border-border rounded-lg bg-input focus:outline-none focus:ring-2 focus:ring-primary"
+                  autoFocus
+                />
+                {emailError && <p className="text-sm text-red-500">{emailError}</p>}
+                {emailStatus === 'success' && !emailError && <p className="text-sm text-green-500">Email sent! Check your inbox for your curated look.</p>}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCloseEmailModal}
+                    className="flex-1 px-6 py-3 border-2 border-border rounded-lg hover:border-primary transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={emailStatus === 'sending' || !selectedJewelry.length}
+                    className={`flex-1 btn-luxury btn-gold ${emailStatus === 'sending' || !selectedJewelry.length ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {emailStatus === 'sending' ? 'Sending...' : emailStatus === 'success' ? 'Sent!' : 'Send'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 }

@@ -1,35 +1,56 @@
-'use client';
+﻿'use client';
 
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useKioskJourney } from '@/components/KioskJourneyProvider';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export default function PhotoCapturePage() {
   const router = useRouter();
-  const [budget, setBudget] = useState(1000);
+  const { budget, setBudget, setFaceImage, clearSelection, setLastTryOn, hydrateComplete } = useKioskJourney();
   const [showTips, setShowTips] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const placeholderFaceImage = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&auto=format&fit=crop&q=80';
+
+  useEffect(() => {
+    if (hydrateComplete) {
+      setLastTryOn(null);
+    }
+  }, [hydrateComplete, setLastTryOn]);
+
   const handleCapture = () => {
-    // Simulate photo capture
+    clearSelection();
+    setFaceImage(placeholderFaceImage);
+    setCapturedImage(placeholderFaceImage);
     setTimeout(() => {
       router.push('/kiosk/jewelry');
-    }, 1500);
+    }, 500);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setCapturedImage(e.target?.result as string);
-        setTimeout(() => {
-          router.push('/kiosk/jewelry');
-        }, 1500);
-      };
-      reader.readAsDataURL(file);
+    if (!file) {
+      return;
     }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string | undefined;
+      if (!dataUrl) {
+        return;
+      }
+      clearSelection();
+      setFaceImage(dataUrl);
+      setCapturedImage(dataUrl);
+      setTimeout(() => {
+        router.push('/kiosk/jewelry');
+      }, 500);
+    };
+    reader.onerror = () => {
+      console.error('Failed to read uploaded photo');
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -81,7 +102,9 @@ export default function PhotoCapturePage() {
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-900/10 to-gray-900/20 flex items-center justify-center relative cursor-pointer" onClick={handleCapture}>
               {/* Face Guide */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-60 border-2 border-primary rounded-[50%_50%_50%_50%/60%_60%_40%_40%] opacity-70" style={{ animation: 'pulse 2s infinite' }}></div>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-48 h-60 border-2 border-primary rounded-[50%_50%_50%_50%/60%_60%_40%_40%] opacity-70" style={{ animation: 'pulse 2s infinite' }}></div>
+              </div>
 
               {/* Camera Overlay */}
               <div className="absolute inset-0 bg-black/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -185,11 +208,11 @@ export default function PhotoCapturePage() {
             </div>
             <div className="space-y-4">
               {[
-                { icon: '☀️', text: 'Use good lighting - natural light or bright indoor lighting works best' },
-                { icon: '👤', text: 'Position your face within the oval guide for optimal jewelry placement' },
-                { icon: '👁️', text: 'Look directly at the camera with a neutral expression' },
-                { icon: '📷', text: 'Keep your head straight and avoid tilting or turning' },
-                { icon: '✅', text: 'Ensure your face and neck area are clearly visible' }
+                { icon: '\u2600\uFE0F', text: 'Use good lighting - natural light or bright indoor lighting works best' },
+                { icon: '\u{1F464}', text: 'Position your face within the oval guide for optimal jewelry placement' },
+                { icon: '\u{1F441}\uFE0F', text: 'Look directly at the camera with a neutral expression' },
+                { icon: '\u{1F4F7}', text: 'Keep your head straight and avoid tilting or turning' },
+                { icon: '\u2705', text: 'Ensure your face and neck area are clearly visible' }
               ].map((tip, i) => (
                 <div key={i} className="flex items-start gap-3 p-3 bg-accent/50 rounded-lg border border-border">
                   <span className="text-2xl">{tip.icon}</span>
@@ -203,10 +226,12 @@ export default function PhotoCapturePage() {
 
       <style jsx>{`
         @keyframes pulse {
-          0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
-          50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+          0%, 100% { opacity: 0.7; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.05); }
         }
       `}</style>
     </div>
   );
 }
+
+

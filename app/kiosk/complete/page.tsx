@@ -1,22 +1,18 @@
-'use client';
+﻿'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 
-const orderItems = [
-  { name: "Diamond Stud Earrings", price: 299 },
-  { name: "Pearl Strand Necklace", price: 799 },
-  { name: "Ruby Bangle Bracelet", price: 599 }
-];
+import { useKioskJourney } from '@/components/KioskJourneyProvider';
 
-const shipping = 25;
-const total = orderItems.reduce((sum, item) => sum + item.price, 0) + shipping;
+const SHIPPING_FEE = 25;
 
 export default function CompletionPage() {
+  const { selectedJewelry, clearSelection } = useKioskJourney();
   const [confetti, setConfetti] = useState<Array<{ id: number; left: string; delay: string; duration: string }>>([]);
 
   useEffect(() => {
-    // Generate confetti
     const confettiPieces = Array.from({ length: 50 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -25,19 +21,22 @@ export default function CompletionPage() {
     }));
     setConfetti(confettiPieces);
 
-    // Auto-redirect after 30 seconds
     const timer = setTimeout(() => {
       if (confirm('Would you like to start a new jewelry try-on experience?')) {
+        clearSelection();
         window.location.href = '/';
       }
     }, 30000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [clearSelection]);
+
+  const subtotal = useMemo(() => selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0), [selectedJewelry]);
+  const total = subtotal + (selectedJewelry.length ? SHIPPING_FEE : 0);
+  const formattedTotal = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(total);
 
   return (
     <div className="min-h-screen gradient-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Confetti */}
       {confetti.map(piece => (
         <div
           key={piece.id}
@@ -51,14 +50,12 @@ export default function CompletionPage() {
         />
       ))}
 
-      {/* Success Icon */}
       <div className="mb-8 animate-success-bounce">
         <svg className="w-24 h-24 text-success mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
 
-      {/* Completion Message */}
       <div className="text-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
         <h1 className="text-4xl lg:text-5xl font-bold text-gold mb-4 animate-pulse-glow" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
           Purchase Complete!
@@ -68,37 +65,45 @@ export default function CompletionPage() {
         </p>
       </div>
 
-      {/* Order Summary */}
       <div className="card-luxury max-w-2xl w-full mb-8 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
         <h2 className="text-2xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
           Order Summary
         </h2>
         <div className="space-y-3 mb-6">
-          {orderItems.map((item, index) => (
-            <div key={index} className="flex items-center justify-between py-3 border-b border-border">
-              <span className="font-medium">{item.name}</span>
-              <span className="text-gold font-semibold">${item.price}</span>
+          {selectedJewelry.map(item => (
+            <div key={item.id} className="flex items-center justify-between py-3 border-b border-border">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-input">
+                  <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <span className="font-medium block">{item.name}</span>
+                  <span className="text-xs text-muted-foreground uppercase tracking-wide">{item.category}</span>
+                </div>
+              </div>
+              <span className="text-gold font-semibold">${item.price ?? 0}</span>
             </div>
           ))}
-          <div className="flex items-center justify-between py-3 border-b border-border">
-            <span className="font-medium">Shipping & Handling</span>
-            <span className="text-gold font-semibold">${shipping}</span>
-          </div>
+          {selectedJewelry.length > 0 && (
+            <div className="flex items-center justify-between py-3 border-b border-border">
+              <span className="font-medium">Shipping & Handling</span>
+              <span className="text-gold font-semibold">${SHIPPING_FEE}</span>
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between pt-6 border-t-2 border-primary">
           <span className="text-2xl font-bold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
             Total
           </span>
           <span className="text-3xl font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-            ${total}
+            {formattedTotal}
           </span>
         </div>
       </div>
 
-      {/* Next Steps */}
       <div className="card-luxury max-w-2xl w-full mb-8 animate-fade-in-up" style={{ animationDelay: '0.7s' }}>
         <h2 className="text-2xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-          What's Next?
+          What&apos;s Next??
         </h2>
         <div className="space-y-4">
           <div className="flex items-start gap-4 p-4 bg-accent/50 rounded-lg border border-border">
@@ -140,7 +145,6 @@ export default function CompletionPage() {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 justify-center mb-12 animate-fade-in-up" style={{ animationDelay: '0.9s' }}>
         <Link href="/" className="btn-luxury btn-silver text-lg px-8">
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +160,6 @@ export default function CompletionPage() {
         </button>
       </div>
 
-      {/* Footer Message */}
       <p className="text-center text-muted-foreground max-w-lg animate-fade-in-up" style={{ animationDelay: '1.1s' }}>
         We appreciate your trust in Evol Jewels. Your satisfaction is our priority, and we look forward to serving you again soon.
       </p>

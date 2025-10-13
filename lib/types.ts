@@ -1,10 +1,12 @@
-export interface JewelryItem {
+﻿export interface JewelryItem {
   id: string;
   name: string;
   category: 'earrings' | 'necklace' | 'bracelet' | 'ring';
   imageUrl: string;
   description: string;
   price?: number;
+  style?: 'classic' | 'modern' | 'vintage';
+  occasion?: 'casual' | 'formal' | 'party' | 'wedding';
 }
 
 export interface ImageData {

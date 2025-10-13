@@ -1,32 +1,136 @@
-'use client';
+﻿'use client';
+/* eslint-disable @next/next/no-img-element */
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
+import { useKioskJourney } from '@/components/KioskJourneyProvider';
+import type { JewelryItem, VirtualTryOnResponse } from '@/lib/types';
+
+type TryOnStatus = 'idle' | 'loading' | 'success' | 'error' | 'missing-face';
+
 export default function TryOnResultsPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const {
+    selectedJewelry,
+    faceImage,
+    sessionId,
+    lastTryOn,
+    setLastTryOn,
+    hydrateComplete,
+  } = useKioskJourney();
+
+  const [status, setStatus] = useState<TryOnStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const lastSuccessfulSignature = useRef<string | null>(null);
+
+  const baseSignature = useMemo(() => {
+    if (!faceImage || selectedJewelry.length === 0) {
+      return null;
+    }
+    const ids = selectedJewelry.map(item => item.id).sort().join('|');
+    return `${ids}:${faceImage}`;
+  }, [faceImage, selectedJewelry]);
 
   useEffect(() => {
-    // Simulate AI processing
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!hydrateComplete) {
+      return;
+    }
+    if (selectedJewelry.length === 0) {
+      router.replace('/kiosk/jewelry');
+    }
+  }, [hydrateComplete, selectedJewelry, router]);
 
-  const selectedJewelry = [
-    { id: 1, name: "Diamond Studs", price: 299, material: "14K Gold", emoji: "💎" },
-    { id: 7, name: "Pearl Strand", price: 799, material: "Sterling Silver", emoji: "🦪" },
-    { id: 13, name: "Ruby Bangle", price: 599, material: "18K Gold", emoji: "🔴" }
-  ];
+  useEffect(() => {
+    if (!hydrateComplete) {
+      return;
+    }
+    if (selectedJewelry.length === 0) {
+      return;
+    }
+    if (!faceImage) {
+      setStatus('missing-face');
+      return;
+    }
 
-  const total = selectedJewelry.reduce((sum, item) => sum + item.price, 0);
+    if (refreshToken === 0 && lastSuccessfulSignature.current === baseSignature && lastTryOn) {
+      setStatus('success');
+      return;
+    }
+
+    const controller = new AbortController();
+    setStatus('loading');
+    setErrorMessage(null);
+
+    const run = async () => {
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            faceImageUrl: faceImage,
+            selectedJewelry,
+            generate3D: false,
+            sessionId,
+          }),
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          let message = 'Virtual try-on failed';
+          try {
+            const errorBody = await response.json();
+            if (errorBody?.error) {
+              message = errorBody.error;
+            }
+          } catch {
+            // ignore parse errors
+          }
+          throw new Error(message);
+        }
+
+        const data = (await response.json()) as VirtualTryOnResponse;
+        lastSuccessfulSignature.current = baseSignature;
+        setLastTryOn(data);
+        setStatus('success');
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+        console.error('Virtual try-on request failed', error);
+        setStatus('error');
+        if (error instanceof Error) {
+          setErrorMessage(error.message);
+        } else {
+          setErrorMessage('Unable to complete try-on. Please try again.');
+        }
+      }
+    };
+
+    run();
+
+    return () => {
+      controller.abort();
+    };
+  }, [hydrateComplete, selectedJewelry, faceImage, sessionId, baseSignature, refreshToken, setLastTryOn, lastTryOn]);
+
+  const total = useMemo(() => {
+    return selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0);
+  }, [selectedJewelry]);
+
+  const handleRetry = () => {
+    setLastTryOn(null);
+    setRefreshToken(token => token + 1);
+  };
+
+  const currentResult = lastTryOn;
+
+  const showMissingFaceNotice = status === 'missing-face';
 
   return (
     <div className="min-h-screen gradient-background flex flex-col">
-      {/* Header */}
       <header className="p-4 lg:p-6 bg-card border-b border-border flex items-center justify-between">
         <Link href="/kiosk/jewelry" className="flex items-center gap-2 px-4 py-2 border-2 border-border rounded-lg hover:border-primary transition-colors">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,9 +156,7 @@ export default function TryOnResultsPage() {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 p-6 lg:p-12 flex flex-col gap-6">
-        {/* Step Indicator */}
         <div className="flex items-center gap-2 justify-center">
           <div className="w-3 h-3 rounded-full bg-success"></div>
           <div className="w-3 h-3 rounded-full bg-success"></div>
@@ -64,92 +166,100 @@ export default function TryOnResultsPage() {
           <div className="w-3 h-3 rounded-full bg-muted"></div>
         </div>
 
-        {/* Results Container */}
+        {showMissingFaceNotice && (
+          <div className="card-luxury border-warning text-center max-w-2xl mx-auto">
+            <h2 className="text-lg font-semibold mb-2">Upload a Photo to Continue</h2>
+            <p className="text-sm text-muted-foreground">
+              We need a face photo to generate the AI try-on result. Please go back and capture or upload a photo before proceeding.
+            </p>
+            <Link href="/kiosk/photo" className="btn-luxury btn-gold mt-4 inline-flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l-7-7 7-7" />
+              </svg>
+              Return to Photo Step
+            </Link>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
-          {/* Original Photo */}
           <div className="card-luxury">
             <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
               Original Photo
             </h2>
-            <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center">
-              <div className="text-center">
-                <svg className="w-16 h-16 mx-auto mb-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <p className="text-muted-foreground">Your Photo</p>
-              </div>
+            <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center overflow-hidden">
+              {faceImage ? (
+                <img src={faceImage} alt="Uploaded face" className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-center">
+                  <svg className="w-16 h-16 mx-auto mb-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <p className="text-muted-foreground">Awaiting photo</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* AI Try-On Result */}
           <div className="card-luxury border-primary" style={{ boxShadow: '0 0 20px oklch(0.75 0.15 85 / 0.3)' }}>
             <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
               AI Try-On Result
             </h2>
-            <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center relative">
-              {loading ? (
+            <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center relative overflow-hidden">
+              {status === 'loading' && (
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-lg font-semibold text-primary">Processing...</p>
-                  <p className="text-sm text-muted-foreground mt-2">AI is creating your personalized try-on</p>
+                  <p className="text-sm text-muted-foreground">Generating your look...</p>
                 </div>
-              ) : (
-                <div className="text-center">
-                  <svg className="w-16 h-16 mx-auto mb-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  <p className="text-gold font-semibold">With Jewelry</p>
+              )}
+              {status === 'error' && (
+                <div className="text-center px-6">
+                  <h3 className="text-lg font-semibold text-warning mb-2">We hit a snag</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{errorMessage}</p>
+                  <button onClick={handleRetry} className="btn-luxury btn-gold inline-flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Try Again
+                  </button>
+                </div>
+              )}
+              {status === 'success' && currentResult?.tryOnImage && (
+                <img src={currentResult.tryOnImage} alt="AI try-on preview" className="w-full h-full object-cover" />
+              )}
+              {status === 'success' && !currentResult?.tryOnImage && (
+                <div className="text-center px-6">
+                  <h3 className="text-lg font-semibold mb-2">Result unavailable</h3>
+                  <p className="text-sm text-muted-foreground">We generated your look but did not receive an image. Please retry.</p>
+                  <button onClick={handleRetry} className="btn-luxury btn-gold inline-flex items-center gap-2 mt-4">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Retry
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-wrap gap-3 justify-center">
-          <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-            </svg>
-            Zoom
-          </button>
-          <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Rotate
-          </button>
-          <button className="px-6 py-3 border-2 border-primary bg-primary/10 rounded-xl font-semibold text-primary transition-all flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-            </svg>
-            Compare
-          </button>
-          <button className="px-6 py-3 border-2 border-border rounded-xl font-semibold hover:border-primary transition-all flex items-center gap-2">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Share
-          </button>
-        </div>
-
-        {/* Jewelry Summary */}
         <div className="card-luxury max-w-2xl mx-auto w-full">
           <h2 className="text-xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
             Selected Jewelry
           </h2>
           <div className="space-y-3 mb-6">
-            {selectedJewelry.map(item => (
+            {selectedJewelry.map((item: JewelryItem) => (
               <div key={item.id} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border border-border">
                 <div className="flex items-center gap-3">
-                  <span className="text-3xl">{item.emoji}</span>
+                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-input">
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
                   <div>
                     <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-sm text-muted-foreground">{item.material}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
                 <span className="text-lg font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  ${item.price}
+                  ${item.price ?? 0}
                 </span>
               </div>
             ))}
@@ -164,7 +274,6 @@ export default function TryOnResultsPage() {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/kiosk/jewelry" className="btn-luxury btn-silver text-lg px-8">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -172,27 +281,26 @@ export default function TryOnResultsPage() {
             </svg>
             Try Different
           </Link>
-          <Link href="/kiosk/celebrity" className="btn-luxury btn-gold text-lg px-8">
+          <Link
+            href="/kiosk/celebrity"
+            onClick={(event) => {
+              if (status === 'loading' || showMissingFaceNotice) {
+                event.preventDefault();
+              }
+            }}
+            className={`btn-luxury btn-gold text-lg px-8 ${status === 'loading' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-disabled={status === 'loading' || showMissingFaceNotice}
+          >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
-            Add to Cart
+            {status === 'loading' ? 'Generating...' : 'Add to Cart'}
           </Link>
         </div>
       </main>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="bg-card rounded-2xl p-12 text-center max-w-md">
-            <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-            <h3 className="text-2xl font-semibold text-gold mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              Processing Your Look
-            </h3>
-            <p className="text-muted-foreground">AI is creating your personalized try-on experience...</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
+
+
