@@ -1,91 +1,124 @@
-import { JewelryItem } from './types';
+﻿import { JewelryItem } from './types';
 
 export const jewelryCollection: JewelryItem[] = [
-  // Earrings
   {
     id: 'ear-001',
-    name: 'Diamond Stud Earrings',
+    name: 'Blossom Vine Diamond Earrings',
     category: 'earrings',
-    imageUrl: 'https://images.unsplash.com/photo-1535632788584-2e7e739c0892?w=300&h=300&fit=crop',
-    description: 'Classic diamond stud earrings with brilliant cut',
-    price: 299
+    imageUrl: '/jewelry/blossom_vine_diamond_earrings.png',
+    description: '14K rose gold with cascading round diamonds',
+    price: 749,
+    style: 'vintage',
+    occasion: 'formal'
   },
   {
     id: 'ear-002',
-    name: 'Gold Hoop Earrings',
+    name: 'Etherial Petal Drop Earrings',
     category: 'earrings',
-    imageUrl: 'https://images.unsplash.com/photo-1617038260904-7e6b3171c269?w=300&h=300&fit=crop',
-    description: 'Elegant gold hoop earrings',
-    price: 199
+    imageUrl: '/jewelry/etherial_petal_drop_earrings.png',
+    description: 'Platinum drops with pear-cut sapphires',
+    price: 689,
+    style: 'modern',
+    occasion: 'wedding'
   },
   {
     id: 'ear-003',
-    name: 'Pearl Drop Earrings',
+    name: 'Halo Spiral Diamond Earrings',
     category: 'earrings',
-    imageUrl: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=300&h=300&fit=crop',
-    description: 'Luxurious pearl drop earrings',
-    price: 159
+    imageUrl: '/jewelry/halo_spiral_diamond_earrings.png',
+    description: '18K yellow gold spirals with pave diamonds',
+    price: 599,
+    style: 'modern',
+    occasion: 'party'
   },
-
-  // Necklaces
+  {
+    id: 'ear-004',
+    name: 'Petal Lace Diamond Earrings',
+    category: 'earrings',
+    imageUrl: '/jewelry/petal_lace_diamond_earrings.png',
+    description: 'Sterling silver lattice with freshwater pearls',
+    price: 329,
+    style: 'classic',
+    occasion: 'formal'
+  },
+  {
+    id: 'ear-005',
+    name: 'Radiant Spiral Diamond Earrings',
+    category: 'earrings',
+    imageUrl: '/jewelry/radiant_spiral_diamond_earrings.png',
+    description: '14K white gold with emerald accents and diamonds',
+    price: 815,
+    style: 'modern',
+    occasion: 'party'
+  },
+  {
+    id: 'ear-006',
+    name: 'Swril Drop Diamond Earrings',
+    category: 'earrings',
+    imageUrl: '/jewelry/swril_drop_diamond_earrings.png',
+    description: 'Rose gold drops with ruby teardrops and diamonds',
+    price: 455,
+    style: 'vintage',
+    occasion: 'wedding'
+  },
   {
     id: 'neck-001',
-    name: 'Diamond Tennis Necklace',
+    name: 'Celestial Cascade Diamond Necklace',
     category: 'necklace',
-    imageUrl: 'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=300&h=300&fit=crop',
-    description: 'Stunning diamond tennis necklace',
-    price: 899
+    imageUrl: '/jewelry/celestial_cascade_diamond_necklace.png',
+    description: '18K white gold collar with graduated diamonds',
+    price: 879,
+    style: 'classic',
+    occasion: 'formal'
   },
   {
     id: 'neck-002',
-    name: 'Gold Chain Necklace',
+    name: 'Elite Necklace',
     category: 'necklace',
-    imageUrl: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop',
-    description: 'Classic gold chain necklace',
-    price: 349
+    imageUrl: '/jewelry/elite_necklace.png',
+    description: 'Platinum bar links with bezel-set sapphires',
+    price: 829,
+    style: 'modern',
+    occasion: 'formal'
   },
   {
     id: 'neck-003',
-    name: 'Pearl Strand Necklace',
+    name: 'Gamut Marquise Necklace',
     category: 'necklace',
-    imageUrl: 'https://images.unsplash.com/photo-1611955167811-4711904bb9f8?w=300&h=300&fit=crop',
-    description: 'Elegant pearl strand necklace',
-    price: 299
-  },
-
-  // Bracelets
-  {
-    id: 'brac-001',
-    name: 'Diamond Tennis Bracelet',
-    category: 'bracelet',
-    imageUrl: 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=300&h=300&fit=crop',
-    description: 'Brilliant diamond tennis bracelet',
-    price: 599
+    imageUrl: '/jewelry/gamut_marquise_necklace.png',
+    description: '14K yellow gold chain with marquise emeralds',
+    price: 615,
+    style: 'modern',
+    occasion: 'party'
   },
   {
-    id: 'brac-002',
-    name: 'Gold Cuff Bracelet',
-    category: 'bracelet',
-    imageUrl: 'https://images.unsplash.com/photo-1583292650898-7d22cd27ca6c?w=300&h=300&fit=crop',
-    description: 'Modern gold cuff bracelet',
-    price: 249
-  },
-
-  // Rings
-  {
-    id: 'ring-001',
-    name: 'Diamond Engagement Ring',
-    category: 'ring',
-    imageUrl: 'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=300&h=300&fit=crop',
-    description: 'Classic solitaire diamond engagement ring',
-    price: 1299
+    id: 'neck-004',
+    name: 'Lustre Five Stone Diamond Necklace',
+    category: 'necklace',
+    imageUrl: '/jewelry/lustre_five_stone_diamond_necklace.png',
+    description: 'Sterling silver with alternating diamond stations',
+    price: 389,
+    style: 'classic',
+    occasion: 'casual'
   },
   {
-    id: 'ring-002',
-    name: 'Gold Wedding Band',
-    category: 'ring',
-    imageUrl: 'https://images.unsplash.com/photo-1588444650700-6a4b5a6d2338?w=300&h=300&fit=crop',
-    description: 'Simple gold wedding band',
-    price: 199
+    id: 'neck-005',
+    name: 'Peace Enchantress Charms Necklace',
+    category: 'necklace',
+    imageUrl: '/jewelry/peace_enchantress_charms_necklace.png',
+    description: '14K rose gold charm chain with cultured pearls',
+    price: 265,
+    style: 'vintage',
+    occasion: 'casual'
+  },
+  {
+    id: 'neck-006',
+    name: 'Periwinkle Diamond Neklace',
+    category: 'necklace',
+    imageUrl: '/jewelry/periwinkle_diamond_neklace.png',
+    description: 'Sterling silver pendant with periwinkle sapphires',
+    price: 149,
+    style: 'classic',
+    occasion: 'wedding'
   }
 ];

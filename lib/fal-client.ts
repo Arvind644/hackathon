@@ -13,29 +13,30 @@ export function buildVirtualTryOnPrompt(selectedJewelry: JewelryItem[]): string 
 
     switch(category) {
       case 'earrings':
-        placement = 'wearing elegant earrings';
+        placement = `wearing luxurious ${item.name} earrings on both ears`;
         break;
       case 'necklace':
-        placement = 'wearing a beautiful necklace';
+        placement = `wearing an elegant ${item.name} necklace around the neck`;
         break;
       case 'bracelet':
-        placement = 'wearing a stylish bracelet';
+        placement = `wearing a sophisticated ${item.name} bracelet on the wrist`;
         break;
       case 'ring':
-        placement = 'wearing an elegant ring';
+        placement = `wearing an exquisite ${item.name} ring on the finger`;
         break;
       default:
         placement = `wearing ${item.name}`;
     }
 
-    return `${placement} (${item.description})`;
-  }).join(' and ');
+    return `${placement}${item.description ? ` - ${item.description}` : ''}`;
+  }).join(', ');
 
-  return `Professional portrait photograph of the same person ${jewelryDescriptions}.
-    High-end jewelry photography with studio lighting, photorealistic quality, elegant pose.
-    The jewelry should appear naturally worn with proper fit and realistic reflections.
-    Maintain the same facial features, expression, and pose from the reference image.
-    Luxury jewelry styling, professional fashion photography.`;
+  return `A professional high-resolution portrait photograph of the same person ${jewelryDescriptions}.
+Photorealistic luxury jewelry styling with professional studio lighting.
+The jewelry pieces should be clearly visible, properly positioned, and realistically rendered with natural metallic shine and reflections.
+Maintain exact same face, skin tone, facial features, expression, hair style, and pose as the reference image.
+Clean background, fashion photography quality, sharp focus on both face and jewelry.
+Natural and elegant presentation suitable for luxury jewelry catalog.`;
 }
 
 export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry: JewelryItem[], generate3D: boolean = false) {
@@ -61,7 +62,7 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
         prompt: prompt,
         image_url: faceImageUrl, // Base image for the setting/background
         reference_image_urls: [faceImageUrl], // Character reference to preserve the face
-        strength: 0.7, // Reduced strength to be more conservative
+        strength: 0.65, // Lower strength to better preserve original face
         style: "REALISTIC", // Use realistic style for jewelry
         rendering_speed: "BALANCED",
         expand_prompt: false, // Disable expand_prompt to avoid prompt modification

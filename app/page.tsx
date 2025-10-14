@@ -1,178 +1,107 @@
 'use client';
 
-import { useState } from 'react';
-import ImageCapture from '@/components/ImageCapture';
-import JewelrySelector from '@/components/JewelrySelector';
-import ResultDisplay from '@/components/ResultDisplay';
-import { ImageData, JewelryItem, VirtualTryOnResponse } from '@/lib/types';
-
-type AppState = 'photo' | 'jewelry' | 'processing' | 'result';
+import Link from 'next/link';
 
 export default function Home() {
-  const [appState, setAppState] = useState<AppState>('photo');
-  const [capturedImage, setCapturedImage] = useState<ImageData | null>(null);
-  const [selectedJewelry, setSelectedJewelry] = useState<JewelryItem[]>([]);
-  const [result, setResult] = useState<VirtualTryOnResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [enable3D, setEnable3D] = useState(false);
-
-  const handleImageCapture = (imageData: ImageData) => {
-    setCapturedImage(imageData);
-    setAppState('jewelry');
-    setResult(null);
-    setError(null);
-  };
-
-  const handleError = (errorMessage: string) => {
-    setError(errorMessage);
-  };
-
-  const handleJewelrySelection = async (jewelry: JewelryItem[]) => {
-    setSelectedJewelry(jewelry);
-    setAppState('processing');
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          faceImageUrl: capturedImage?.dataUrl,
-          selectedJewelry: jewelry,
-          generate3D: enable3D
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Virtual try-on failed');
-      }
-
-      const result = await response.json();
-      setResult(result);
-      setAppState('result');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setAppState('result');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTryAgain = () => {
-    setCapturedImage(null);
-    setSelectedJewelry([]);
-    setResult(null);
-    setError(null);
-    setAppState('photo');
-  };
-
-  const handleBackToPhoto = () => {
-    setAppState('photo');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            Virtual Jewelry Try-On
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Upload your face photo, select jewelry from our collection, and see yourself wearing it with AI magic
-          </p>
-          <div className="mt-6 space-x-4">
-            <a
-              href="/viewer"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              🔮 3D Model Viewer
-            </a>
-            <a
-              href="/gallery"
-              className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              📸 Try-On Gallery
-            </a>
-          </div>
-        </div>
+    <div className="min-h-screen gradient-background flex flex-col relative overflow-hidden">
+      {/* Sparkle Effects */}
+      <div className="absolute top-[20%] left-[15%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '0s' }}></div>
+      <div className="absolute top-[30%] right-[20%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '0.5s' }}></div>
+      <div className="absolute bottom-[25%] left-[25%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '1s' }}></div>
+      <div className="absolute bottom-[35%] right-[15%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '1.5s' }}></div>
+      <div className="absolute top-[50%] left-[10%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '2s' }}></div>
+      <div className="absolute top-[60%] right-[10%] w-1 h-1 rounded-full bg-primary opacity-0 animate-sparkle" style={{ animationDelay: '2.5s' }}></div>
 
-        {/* Progress Indicator */}
-        <div className="max-w-2xl mx-auto mb-8">
-          <div className="flex items-center justify-between">
-            <div className={`flex items-center space-x-2 ${appState === 'photo' ? 'text-blue-600' : 'text-green-600'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${appState === 'photo' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white'}`}>
-                {appState !== 'photo' ? '✓' : '1'}
-              </div>
-              <span className="font-medium">Upload Photo</span>
-            </div>
-            <div className={`flex-1 h-1 mx-4 ${appState !== 'photo' ? 'bg-green-600' : 'bg-gray-300'}`}></div>
-            <div className={`flex items-center space-x-2 ${appState === 'jewelry' ? 'text-blue-600' : ['processing', 'result'].includes(appState) ? 'text-green-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${appState === 'jewelry' ? 'bg-blue-600 text-white' : ['processing', 'result'].includes(appState) ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>
-                {['processing', 'result'].includes(appState) ? '✓' : '2'}
-              </div>
-              <span className="font-medium">Select Jewelry</span>
-            </div>
-            <div className={`flex-1 h-1 mx-4 ${['processing', 'result'].includes(appState) ? 'bg-green-600' : 'bg-gray-300'}`}></div>
-            <div className={`flex items-center space-x-2 ${['processing', 'result'].includes(appState) ? 'text-blue-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${appState === 'result' ? 'bg-green-600 text-white' : appState === 'processing' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>
-                {appState === 'result' ? '✓' : '3'}
-              </div>
-              <span className="font-medium">Try On</span>
+      {/* Header */}
+      <header className="p-8 lg:p-12 text-center relative z-10">
+        <h1 className="text-4xl lg:text-6xl font-bold text-gold animate-logo-glow mb-3" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+          EVOL JEWELS
+        </h1>
+        <p className="text-base lg:text-xl text-muted-foreground font-light tracking-wide">
+          Luxury Redefined Through Innovation
+        </p>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center px-6 lg:px-12 relative z-10">
+        {/* Mirror Container */}
+        <div className="w-full max-w-2xl aspect-[4/3] bg-card border-[3px] border-border rounded-3xl relative overflow-hidden shadow-2xl mb-12 animate-mirror-float">
+          <div className="w-full h-full bg-gradient-to-br from-gray-900/10 to-gray-900/20 flex items-center justify-center relative">
+            <div className="w-4/5 h-4/5 bg-gradient-radial from-gray-800/20 to-gray-900/10 rounded-full flex items-center justify-center relative">
+              {/* Camera Icon */}
+              <svg
+                className="w-16 h-16 text-primary opacity-60"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                style={{
+                  animation: 'spin 8s linear infinite',
+                  transformOrigin: 'center'
+                }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </div>
           </div>
         </div>
 
-        {/* 3D Toggle */}
-        <div className="max-w-md mx-auto mb-8">
-          <label className="flex items-center justify-center space-x-3 bg-white rounded-lg p-4 shadow-sm">
-            <input
-              type="checkbox"
-              checked={enable3D}
-              onChange={(e) => setEnable3D(e.target.checked)}
-              className="w-5 h-5 text-blue-600"
-            />
-            <span className="text-gray-700">Enable 3D Model Generation (slower but more immersive)</span>
-          </label>
+        {/* Start Button */}
+        <Link href="/kiosk/photo" className="btn-luxury btn-gold text-xl lg:text-2xl px-12 py-6 animate-button-pulse">
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+          TAP TO START
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+          </svg>
+        </Link>
+
+        {/* Features */}
+        <div className="flex flex-wrap items-center justify-center gap-6 lg:gap-8 mt-12">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span>8-Second AI Processing</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            </svg>
+            <span>High-Quality Try-On</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+            <span>Celebrity Style Matching</span>
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm font-medium">
+            <svg className="w-6 h-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            <span>Mobile Continuation</span>
+          </div>
         </div>
+      </main>
 
-        {/* Main Content */}
-        <div className="max-w-6xl mx-auto">
-          {appState === 'photo' && (
-            <ImageCapture
-              onImageCapture={handleImageCapture}
-              onError={handleError}
-            />
-          )}
+      {/* Footer */}
+      <footer className="p-6 text-center text-muted-foreground text-sm">
+        <p>Experience luxury jewelry virtually • Powered by AI Technology</p>
+      </footer>
 
-          {appState === 'jewelry' && (
-            <JewelrySelector
-              onSelectionComplete={handleJewelrySelection}
-              onBack={handleBackToPhoto}
-            />
-          )}
+      <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
 
-          {(appState === 'processing' || appState === 'result') && (
-            <ResultDisplay
-              result={result}
-              isLoading={isLoading}
-              error={error}
-              selectedJewelry={selectedJewelry}
-              onTryAgain={handleTryAgain}
-            />
-          )}
-        </div>
-
-        {/* Footer */}
-        <footer className="text-center mt-16 py-8 text-gray-500">
-          <p>Powered by fal.ai FLUX + Trellis 3D • Built for Evol Jewels Hackathon</p>
-        </footer>
-      </div>
+        .bg-gradient-radial {
+          background: radial-gradient(circle at center, var(--tw-gradient-stops));
+        }
+      `}</style>
     </div>
   );
 }
