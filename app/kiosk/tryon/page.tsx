@@ -9,6 +9,68 @@ import { useKioskJourney } from '@/components/KioskJourneyProvider';
 import type { JewelryItem, VirtualTryOnResponse } from '@/lib/types';
 
 type TryOnStatus = 'idle' | 'loading' | 'success' | 'error' | 'missing-face';
+type StyleTag = 'Bold' | 'Confident' | 'Elegant' | 'Modern';
+type OccasionTag = 'Formal' | 'Party' | 'Casual' | 'Wedding';
+
+interface Celebrity {
+  id: string;
+  name: string;
+  image: string;
+  gender: 'male' | 'female';
+  styleMatch: number;
+  description: string;
+  styles: StyleTag[];
+  occasions: OccasionTag[];
+  matchPercentage?: number;
+  styleMatches?: number;
+  occasionMatches?: number;
+}
+
+const CELEBRITIES: Celebrity[] = [
+  {
+    id: 'madhuridixit',
+    name: 'Madhuri Dixit',
+    image: '/celebrity/female/madhuridixit.jpg',
+    gender: 'female',
+    styleMatch: 95,
+    description: 'Timeless elegance with traditional and modern fusion',
+    styles: ['Elegant', 'Confident'],
+    occasions: ['Formal', 'Wedding']
+  },
+  {
+    id: 'ananyapandey',
+    name: 'Ananya Pandey',
+    image: '/celebrity/female/ananyapandey.jfif',
+    gender: 'female',
+    styleMatch: 90,
+    description: 'Contemporary chic with minimalist sophistication',
+    styles: ['Modern', 'Bold'],
+    occasions: ['Party', 'Casual']
+  },
+  {
+    id: 'apdhillon',
+    name: 'AP Dhillon',
+    image: '/celebrity/male/apdhillon.jpg',
+    gender: 'male',
+    styleMatch: 88,
+    description: 'Urban cool with statement accessories',
+    styles: ['Bold', 'Modern'],
+    occasions: ['Party', 'Casual']
+  },
+  {
+    id: 'badshah',
+    name: 'Badshah',
+    image: '/celebrity/male/badshah.png',
+    gender: 'male',
+    styleMatch: 92,
+    description: 'Bold luxury with street-style edge',
+    styles: ['Bold', 'Confident'],
+    occasions: ['Party', 'Casual']
+  }
+];
+
+const STYLE_TAGS: StyleTag[] = ['Bold', 'Confident', 'Elegant', 'Modern'];
+const OCCASION_TAGS: OccasionTag[] = ['Formal', 'Party', 'Casual', 'Wedding'];
 
 export default function TryOnResultsPage() {
   const router = useRouter();
@@ -18,12 +80,18 @@ export default function TryOnResultsPage() {
     sessionId,
     lastTryOn,
     setLastTryOn,
+    toggleJewelry,
     hydrateComplete,
   } = useKioskJourney();
 
   const [status, setStatus] = useState<TryOnStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [userGender, setUserGender] = useState<'male' | 'female' | null>(null);
+  const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>(['Bold']);
+  const [selectedOccasions, setSelectedOccasions] = useState<OccasionTag[]>(['Formal']);
+  const [showComparison, setShowComparison] = useState(false);
   const lastSuccessfulSignature = useRef<string | null>(null);
 
   const baseSignature = useMemo(() => {
@@ -66,12 +134,15 @@ export default function TryOnResultsPage() {
 
     const run = async () => {
       try {
+        // Use only the last selected jewelry item for AI generation
+        const lastJewelry = selectedJewelry[selectedJewelry.length - 1];
+
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             faceImageUrl: faceImage,
-            selectedJewelry,
+            selectedJewelry: [lastJewelry], // Only send the last jewelry item
             generate3D: false,
             sessionId,
           }),
@@ -120,10 +191,58 @@ export default function TryOnResultsPage() {
     return selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0);
   }, [selectedJewelry]);
 
+  // Match celebrities based on selected styles, occasions, and gender
+  const matchedCelebrities = useMemo(() => {
+    const genderFilteredCelebrities = userGender
+      ? CELEBRITIES.filter(c => c.gender === userGender)
+      : CELEBRITIES;
+
+    return genderFilteredCelebrities.map(celebrity => {
+      const styleMatches = selectedStyles.filter(style => celebrity.styles.includes(style)).length;
+      const occasionMatches = selectedOccasions.filter(occ => celebrity.occasions.includes(occ)).length;
+      const totalMatches = styleMatches + occasionMatches;
+      const maxMatches = selectedStyles.length + selectedOccasions.length;
+
+      // Calculate match percentage with 50% minimum
+      const calculatedPercentage = maxMatches > 0 ? (totalMatches / maxMatches) * 100 : celebrity.styleMatch;
+      const matchPercentage = Math.max(50, Math.round(calculatedPercentage));
+
+      return {
+        ...celebrity,
+        matchPercentage,
+        styleMatches,
+        occasionMatches
+      };
+    }).sort((a, b) => b.matchPercentage - a.matchPercentage);
+  }, [selectedStyles, selectedOccasions, userGender]);
+
+  const topCelebrity = matchedCelebrities[0];
+
+  const toggleStyle = (style: StyleTag) => {
+    setSelectedStyles(prev => (prev.includes(style) ? prev.filter(s => s !== style) : [...prev, style]));
+  };
+
+  const toggleOccasion = (occasion: OccasionTag) => {
+    setSelectedOccasions(prev => (prev.includes(occasion) ? prev.filter(o => o !== occasion) : [...prev, occasion]));
+  };
+
   const handleRetry = () => {
     setLastTryOn(null);
     setRefreshToken(token => token + 1);
   };
+
+  // Handle ESC key to close modals
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showImageModal) setShowImageModal(false);
+        if (showComparison) setShowComparison(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [showImageModal, showComparison]);
 
   const currentResult = lastTryOn;
 
@@ -142,7 +261,7 @@ export default function TryOnResultsPage() {
           EVOL JEWELS
         </h1>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">Step 3 of 6</span>
+          <span className="text-sm text-muted-foreground">Step 3 of 5</span>
           <button className="p-2 border-2 border-border rounded-lg hover:border-primary transition-colors">
             <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
@@ -181,40 +300,66 @@ export default function TryOnResultsPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto w-full">
-          <div className="card-luxury">
-            <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              Original Photo
-            </h2>
-            <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center overflow-hidden">
-              {faceImage ? (
-                <img src={faceImage} alt="Uploaded face" className="w-full h-full object-cover" />
-              ) : (
-                <div className="text-center">
-                  <svg className="w-16 h-16 mx-auto mb-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  <p className="text-muted-foreground">Awaiting photo</p>
-                </div>
-              )}
-            </div>
+        {/* Gender Selection */}
+        <div className="card-luxury max-w-md mx-auto w-full">
+          <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+            Select Your Gender
+          </h2>
+          <p className="text-sm text-muted-foreground text-center mb-4">
+            Choose your gender to see matching celebrity styles
+          </p>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => setUserGender('male')}
+              className={`flex-1 px-6 py-4 border-2 rounded-xl font-semibold transition-all ${
+                userGender === 'male'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-gold'
+                  : 'border-border hover:border-primary'
+              }`}
+            >
+              <svg className="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Male
+            </button>
+            <button
+              onClick={() => setUserGender('female')}
+              className={`flex-1 px-6 py-4 border-2 rounded-xl font-semibold transition-all ${
+                userGender === 'female'
+                  ? 'bg-primary text-primary-foreground border-primary shadow-gold'
+                  : 'border-border hover:border-primary'
+              }`}
+            >
+              <svg className="w-8 h-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Female
+            </button>
           </div>
+        </div>
 
+        <div className={`grid grid-cols-1 ${status === 'success' && currentResult?.tryOnImage ? 'lg:grid-cols-2' : ''} gap-6 max-w-6xl mx-auto w-full`}>
           <div className="card-luxury border-primary" style={{ boxShadow: '0 0 20px oklch(0.75 0.15 85 / 0.3)' }}>
             <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-              AI Try-On Result
+              Your AI Try-On Result
             </h2>
             <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center relative overflow-hidden">
-              {status === 'loading' && (
+              {(status === 'idle' || status === 'loading') && (
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-sm text-muted-foreground">Generating your look...</p>
+                  <p className="text-sm text-muted-foreground">
+                    {status === 'idle' ? 'Preparing...' : 'Generating your look...'}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">This may take 10-30 seconds</p>
                 </div>
               )}
               {status === 'error' && (
                 <div className="text-center px-6">
-                  <h3 className="text-lg font-semibold text-warning mb-2">We hit a snag</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{errorMessage}</p>
+                  <svg className="w-16 h-16 text-destructive mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold text-destructive mb-2">Generation Failed</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{errorMessage || 'Unable to generate try-on result'}</p>
                   <button onClick={handleRetry} className="btn-luxury btn-gold inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -224,13 +369,28 @@ export default function TryOnResultsPage() {
                 </div>
               )}
               {status === 'success' && currentResult?.tryOnImage && (
-                <img src={currentResult.tryOnImage} alt="AI try-on preview" className="w-full h-full object-cover" />
+                <>
+                  <img src={currentResult.tryOnImage} alt="AI try-on preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setShowImageModal(true)}
+                    className="absolute top-4 right-4 p-2 bg-card/90 backdrop-blur-sm border-2 border-border rounded-lg hover:border-primary hover:bg-primary/10 transition-all shadow-lg group"
+                    title="View fullscreen"
+                  >
+                    <svg className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </>
               )}
               {status === 'success' && !currentResult?.tryOnImage && (
                 <div className="text-center px-6">
-                  <h3 className="text-lg font-semibold mb-2">Result unavailable</h3>
-                  <p className="text-sm text-muted-foreground">We generated your look but did not receive an image. Please retry.</p>
-                  <button onClick={handleRetry} className="btn-luxury btn-gold inline-flex items-center gap-2 mt-4">
+                  <svg className="w-16 h-16 text-warning mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <h3 className="text-lg font-semibold mb-2">Result Unavailable</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Generation completed but no image was received. Please try again.</p>
+                  <button onClick={handleRetry} className="btn-luxury btn-gold inline-flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
@@ -240,15 +400,106 @@ export default function TryOnResultsPage() {
               )}
             </div>
           </div>
+
+          {/* Celebrity Match - Only show when AI image is generated */}
+          {status === 'success' && currentResult?.tryOnImage && (
+            <div className="card-luxury">
+              <h2 className="text-lg font-semibold text-gold text-center mb-4" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                Celebrity Match
+              </h2>
+              <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center mb-4 overflow-hidden relative">
+                {topCelebrity && userGender ? (
+                  <>
+                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => setShowComparison(true)}
+                      className="absolute bottom-4 right-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-all shadow-lg font-semibold text-sm"
+                    >
+                      Compare Looks
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-center px-6">
+                    <svg className="w-16 h-16 mx-auto mb-2 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <p className="text-muted-foreground">Select your gender above to see celebrity matches</p>
+                  </div>
+                )}
+              </div>
+              {topCelebrity && userGender && (
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">{topCelebrity.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">{topCelebrity.description}</p>
+                  <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-2">
+                    <div className="h-full gradient-gold animate-shimmer relative" style={{ width: `${topCelebrity.matchPercentage}%` }}></div>
+                  </div>
+                  <p className="text-sm text-gold font-semibold">{topCelebrity.matchPercentage}% Style Match</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Style Preferences */}
+        <div className="card-luxury max-w-5xl mx-auto w-full">
+          <h2 className="text-2xl font-semibold text-gold text-center mb-8" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+            Style Preferences
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div>
+              <h3 className="font-semibold mb-4">Style Vibe</h3>
+              <div className="flex flex-wrap gap-2">
+                {STYLE_TAGS.map(style => (
+                  <button
+                    key={style}
+                    onClick={() => toggleStyle(style)}
+                    className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
+                      selectedStyles.includes(style)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border hover:border-primary'
+                    }`}
+                  >
+                    {style}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Occasion</h3>
+              <div className="flex flex-wrap gap-2">
+                {OCCASION_TAGS.map(occasion => (
+                  <button
+                    key={occasion}
+                    onClick={() => toggleOccasion(occasion)}
+                    className={`px-4 py-2 border-2 rounded-lg font-medium transition-all ${
+                      selectedOccasions.includes(occasion)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border hover:border-primary'
+                    }`}
+                  >
+                    {occasion}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="card-luxury max-w-2xl mx-auto w-full">
           <h2 className="text-xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
             Selected Jewelry
           </h2>
+          <p className="text-sm text-muted-foreground text-center mb-4">
+            AI try-on shows the last selected item. Click X to remove items you don&apos;t want to buy.
+          </p>
           <div className="space-y-3 mb-6">
-            {selectedJewelry.map((item: JewelryItem) => (
-              <div key={item.id} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border border-border">
+            {selectedJewelry.map((item: JewelryItem, index) => {
+              const isLastItem = index === selectedJewelry.length - 1;
+              return (
+              <div key={item.id} className={`flex items-center justify-between p-4 rounded-lg border-2 transition-colors group relative ${
+                isLastItem ? 'bg-primary/10 border-primary' : 'bg-accent/50 border-border hover:border-destructive'
+              }`}>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-input">
                     <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
@@ -258,11 +509,28 @@ export default function TryOnResultsPage() {
                     <p className="text-sm text-muted-foreground">{item.description}</p>
                   </div>
                 </div>
-                <span className="text-lg font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  ${item.price ?? 0}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                    ${item.price ?? 0}
+                  </span>
+                  <button
+                    onClick={() => toggleJewelry(item)}
+                    className="p-2 rounded-lg border-2 border-border hover:border-destructive hover:bg-destructive/10 transition-colors"
+                    title="Remove from cart"
+                  >
+                    <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                {isLastItem && (
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground px-2 py-1 rounded-full text-xs font-bold">
+                    In Try-On
+                  </div>
+                )}
               </div>
-            ))}
+            );
+            })}
           </div>
           <div className="flex items-center justify-between pt-6 border-t-2 border-border">
             <span className="text-xl font-semibold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
@@ -279,10 +547,10 @@ export default function TryOnResultsPage() {
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            Try Different
+            Try Different Jewelry
           </Link>
           <Link
-            href="/kiosk/celebrity"
+            href="/kiosk/purchase"
             onClick={(event) => {
               if (status === 'loading' || showMissingFaceNotice) {
                 event.preventDefault();
@@ -292,12 +560,164 @@ export default function TryOnResultsPage() {
             aria-disabled={status === 'loading' || showMissingFaceNotice}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            {status === 'loading' ? 'Generating...' : 'Add to Cart'}
+            {status === 'loading' ? 'Generating...' : 'Continue to Purchase'}
           </Link>
         </div>
       </main>
+
+      {/* Fullscreen Image Modal */}
+      {showImageModal && currentResult?.tryOnImage && (
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-4 right-4 p-3 bg-card/90 backdrop-blur-sm border-2 border-border rounded-full hover:border-primary hover:bg-primary/10 transition-all shadow-lg z-10"
+              title="Close"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Download Button */}
+            <a
+              href={currentResult.tryOnImage}
+              download="evol-jewels-tryon.jpg"
+              className="absolute top-4 left-4 p-3 bg-card/90 backdrop-blur-sm border-2 border-border rounded-full hover:border-primary hover:bg-primary/10 transition-all shadow-lg z-10"
+              title="Download image"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </a>
+
+            {/* Image */}
+            <img
+              src={currentResult.tryOnImage}
+              alt="AI try-on result fullscreen"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+
+            {/* Image Info */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-card/90 backdrop-blur-sm border-2 border-border rounded-xl px-6 py-3 shadow-lg">
+              <p className="text-sm text-muted-foreground text-center">
+                Click outside or press close to exit fullscreen
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Celebrity Comparison Modal */}
+      {showComparison && topCelebrity && currentResult?.tryOnImage && (
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowComparison(false)}
+        >
+          <div className="relative max-w-6xl w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowComparison(false)}
+              className="absolute -top-2 -right-2 p-3 bg-card/90 backdrop-blur-sm border-2 border-border rounded-full hover:border-primary hover:bg-primary/10 transition-all shadow-lg z-10"
+              title="Close"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="card-luxury">
+              <h2 className="text-2xl font-semibold text-gold text-center mb-8" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                Style Comparison
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-center mb-4">Your Look</h3>
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-primary shadow-lg">
+                    <img src={currentResult.tryOnImage} alt="Your look" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Selected Jewelry</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {selectedJewelry.slice(0, 3).map(item => (
+                        <span key={item.id} className="text-xs px-3 py-1 bg-accent border border-border rounded-full">
+                          {item.name}
+                        </span>
+                      ))}
+                      {selectedJewelry.length > 3 && (
+                        <span className="text-xs px-3 py-1 bg-accent border border-border rounded-full">
+                          +{selectedJewelry.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-semibold text-center mb-4">{topCelebrity.name}</h3>
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-gold shadow-lg">
+                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-2">Celebrity Style</p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {topCelebrity.styles.map((style: StyleTag) => (
+                        <span key={style} className="text-xs px-3 py-1 bg-primary/20 text-primary rounded-full font-semibold">
+                          {style}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-accent/50 border border-border rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-center flex-1">
+                    <p className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                      {topCelebrity.matchPercentage}%
+                    </p>
+                    <p className="text-sm text-muted-foreground">Style Match</p>
+                  </div>
+                  <div className="h-16 w-px bg-border mx-6"></div>
+                  <div className="text-center flex-1">
+                    <p className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+                      {topCelebrity.styleMatches + topCelebrity.occasionMatches}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Common Preferences</p>
+                  </div>
+                </div>
+                <p className="text-center text-sm text-muted-foreground">
+                  {topCelebrity.description}
+                </p>
+              </div>
+
+              <div className="flex gap-4 justify-center mt-6">
+                <button
+                  onClick={() => setShowComparison(false)}
+                  className="btn-luxury btn-silver px-6"
+                >
+                  Close
+                </button>
+                <Link
+                  href="/kiosk/purchase"
+                  className="btn-luxury btn-gold px-6"
+                >
+                  Continue to Purchase
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
