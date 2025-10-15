@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { faceImageUrl, selectedJewelry, generate3D, sessionId } = body;
+    const { faceImageUrl, selectedJewelry, generate3D, sessionId, skipCleaning } = body;
 
     if (!faceImageUrl || !selectedJewelry || !Array.isArray(selectedJewelry)) {
       return NextResponse.json(
@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
     if (hasFalKey) {
       console.log('Using fal.ai API for virtual try-on...');
       console.log('Selected jewelry:', selectedJewelry.map(j => j.name).join(', '));
-      result = await generateVirtualTryOn(faceImageUrl, selectedJewelry, generate3D);
+      console.log('Skip cleaning:', skipCleaning);
+      result = await generateVirtualTryOn(faceImageUrl, selectedJewelry, generate3D, skipCleaning);
     } else {
       console.log('Using mock data (no API key found)...');
       result = await generateMockVirtualTryOn(selectedJewelry, generate3D);
@@ -48,7 +49,9 @@ export async function POST(request: NextRequest) {
           jewelryItems: selectedJewelry,
           modelUsed: result.model_used,
           processingTime,
-          sessionId: sessionId || null
+          sessionId: sessionId || null,
+          cleanedImageUrl: result.cleanedImage || null,
+          originalImageUrl: result.originalImage || faceImageUrl
         }
       });
 
