@@ -12,7 +12,7 @@ const SHIPPING_FEE = 25;
 
 export default function PurchaseJourneyPage() {
   const router = useRouter();
-  const { selectedJewelry, hydrateComplete, lastTryOn, sessionId, faceImage } = useKioskJourney();
+  const { selectedJewelry, recommendedJewelry, toggleJewelry, toggleRecommendedJewelry, savedLooks, removeSavedLook, hydrateComplete, lastTryOn, sessionId, faceImage } = useKioskJourney();
   const [showQR, setShowQR] = useState(false);
   const [showEmail, setShowEmail] = useState(false);
   const [emailAddress, setEmailAddress] = useState('');
@@ -23,16 +23,16 @@ export default function PurchaseJourneyPage() {
     if (!hydrateComplete) {
       return;
     }
-    if (selectedJewelry.length === 0) {
+    if (selectedJewelry.length === 0 && recommendedJewelry.length === 0) {
       router.replace('/kiosk/jewelry');
     }
-  }, [hydrateComplete, selectedJewelry, router]);
+  }, [hydrateComplete, selectedJewelry, recommendedJewelry, router]);
 
   const subtotal = useMemo(
-    () => selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0),
-    [selectedJewelry]
+    () => [...selectedJewelry, ...recommendedJewelry].reduce((sum, item) => sum + (item.price ?? 0), 0),
+    [selectedJewelry, recommendedJewelry]
   );
-  const shipping = selectedJewelry.length ? SHIPPING_FEE : 0;
+  const shipping = (selectedJewelry.length + recommendedJewelry.length) ? SHIPPING_FEE : 0;
   const total = subtotal + shipping;
   const formattedSubtotal = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -114,7 +114,7 @@ export default function PurchaseJourneyPage() {
     <div className="min-h-screen gradient-background flex flex-col">
       <header className="p-4 lg:p-6 bg-card border-b border-border flex items-center justify-between">
         <Link
-          href="/kiosk/celebrity"
+          href="/kiosk/tryon"
           className="flex items-center gap-2 px-4 py-2 border-2 border-border rounded-lg hover:border-primary transition-colors"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,11 +157,22 @@ export default function PurchaseJourneyPage() {
             Your Saved Looks
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {(selectedJewelry.length ? selectedJewelry : jewelryCollection.slice(0, 4)).map((item) => (
+            {(savedLooks.length > 0 ? savedLooks : jewelryCollection.slice(0, 4)).map((item) => (
               <div
                 key={item.id}
-                className="bg-accent/50 border-2 border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 relative"
+                className="bg-accent/50 border-2 border-border rounded-xl p-4 text-center cursor-pointer hover:border-primary hover:shadow-gold transition-all hover:-translate-y-1 relative group"
               >
+                {/* Remove button */}
+                <button
+                  onClick={() => removeSavedLook(item.id)}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  title="Remove from saved looks"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                
                 <div className="w-full h-32 bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-lg flex items-center justify-center overflow-hidden mb-3">
                   <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                 </div>
@@ -222,62 +233,26 @@ export default function PurchaseJourneyPage() {
           </div>
         </div>
 
-        <div className="card-luxury max-w-3xl mx-auto w-full">
+        {/* Try Another Look Button */}
+        <div className="card-luxury max-w-2xl mx-auto w-full text-center">
           <h2
-            className="text-xl font-semibold text-gold text-center mb-6"
+            className="text-xl font-semibold text-gold mb-6"
             style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
           >
-            Checkout Summary
+            Want to Try Something Different?
           </h2>
-          <div className="space-y-3 mb-6">
-            {selectedJewelry.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-4 bg-accent/50 rounded-lg border border-border">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border border-border bg-input">
-                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">{item.category}</p>
-                  </div>
-                </div>
-                <span
-                  className="text-lg font-bold text-gold"
-                  style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}
-                >
-                  ${item.price ?? 0}
-                </span>
-              </div>
-            ))}
-            {selectedJewelry.length === 0 && (
-              <div className="text-center text-muted-foreground py-6">
-                Add jewelry to your cart to see pricing details.
-              </div>
-            )}
-          </div>
-          {selectedJewelry.length > 0 && (
-            <div className="space-y-2 border-t-2 border-border pt-4">
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Subtotal</span>
-                <span>{formattedSubtotal}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>Shipping</span>
-                <span>${SHIPPING_FEE}</span>
-              </div>
-              <div className="flex items-center justify-between pt-3">
-                <span className="text-xl font-semibold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  Total Due Today
-                </span>
-                <span className="text-3xl font-bold text-gold" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                  {formattedTotal}
-                </span>
-              </div>
-              <button onClick={handlePurchaseNow} className="btn-luxury btn-gold w-full mt-4 text-lg">
-                Complete Purchase
-              </button>
-            </div>
-          )}
+          <p className="text-muted-foreground mb-6">
+            Create a new look with different jewelry pieces and styles.
+          </p>
+          <Link 
+            href="/kiosk/jewelry" 
+            className="btn-luxury btn-gold inline-flex items-center gap-2 text-lg px-8"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Try Another Look
+          </Link>
         </div>
 
         <div className="card-luxury max-w-5xl mx-auto w-full">

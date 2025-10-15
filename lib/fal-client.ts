@@ -16,6 +16,7 @@ export function buildImageCleaningPrompt(): string {
 6. Maintain natural facial expressions and features
 7. Crop to optimal portrait aspect ratio (3:4)
 8. Professional studio-quality lighting and clarity
+CRITICAL: Do NOT change the person's appearance, facial features, or expression. Only enhance lighting and remove background.
 The result should be a clean, centered portrait perfect for jewelry try-on applications.`;
 }
 
@@ -26,30 +27,40 @@ export function buildVirtualTryOnPrompt(selectedJewelry: JewelryItem[]): string 
 
     switch(category) {
       case 'earrings':
-        placement = `wearing luxurious ${item.name} earrings on both ears`;
+        placement = `wearing the exact ${item.name} earrings on both ears`;
         break;
       case 'necklace':
-        placement = `wearing an elegant ${item.name} necklace around the neck`;
+        placement = `wearing the exact ${item.name} necklace around the neck`;
         break;
       case 'bracelet':
-        placement = `wearing a sophisticated ${item.name} bracelet on the wrist`;
+        placement = `wearing the exact ${item.name} bracelet on the wrist`;
         break;
       case 'ring':
-        placement = `wearing an exquisite ${item.name} ring on the finger`;
+        placement = `wearing the exact ${item.name} ring on the finger`;
         break;
       default:
-        placement = `wearing ${item.name}`;
+        placement = `wearing the exact ${item.name}`;
     }
 
     return `${placement}${item.description ? ` - ${item.description}` : ''}`;
   }).join(', ');
 
-  return `A professional high-resolution portrait photograph of the same person ${jewelryDescriptions}.
-Photorealistic luxury jewelry styling with professional studio lighting.
-The jewelry pieces should be clearly visible, properly positioned, and realistically rendered with natural metallic shine and reflections.
-Maintain exact same face, skin tone, facial features, expression, hair style, and pose as the reference image.
-Do not change the background, fashion photography quality, sharp focus on both face and jewelry. Do not add the jewelry anywhere but the face/neck.
-Natural and elegant presentation suitable for luxury jewelry catalog.`;
+  return `Create a professional high-resolution portrait photograph of the same person ${jewelryDescriptions}.
+
+CRITICAL REQUIREMENTS:
+- Use ONLY the exact jewelry items specified: ${selectedJewelry.map(j => j.name).join(', ')}
+- Reference the provided jewelry images to recreate the EXACT same pieces
+- Do NOT change, modify, or substitute the jewelry items
+- Do NOT add any additional jewelry not specified
+- Do NOT remove or alter the specified jewelry pieces
+- Match the exact colors, materials, and design patterns from the jewelry images
+- Maintain the exact same face, skin tone, facial features, expression, hair style, and pose as the reference image
+- Keep the jewelry pieces clearly visible, properly positioned, and realistically rendered
+- Use natural metallic shine and reflections appropriate for luxury jewelry
+- Professional studio lighting with sharp focus on both face and jewelry
+- Do not change the background - maintain the same background as the reference image
+- Fashion photography quality suitable for luxury jewelry catalog
+- Natural and elegant presentation`;
 }
 
 export async function cleanImage(faceImageUrl: string): Promise<string> {
@@ -139,15 +150,20 @@ export async function generateVirtualTryOn(faceImageUrl: string, selectedJewelry
     console.log('Step 2: Generating virtual try-on...');
     const prompt = buildVirtualTryOnPrompt(selectedJewelry);
 
+    // Include jewelry image URLs for AI reference
+    const jewelryImageUrls = selectedJewelry.map(j => j.imageUrl).filter(url => url.startsWith('http'));
+
     console.log('Sending virtual try-on request to fal.ai using Nano Banana...');
     console.log('Processed Image URL:', processedImageUrl);
+    console.log('Selected Jewelry Items:', selectedJewelry.map(j => `${j.name} (${j.category})`).join(', '));
+    console.log('Jewelry Image URLs:', jewelryImageUrls);
     console.log('Prompt:', prompt);
 
     // Use Nano Banana for image-to-image editing with face preservation
     const result = await fal.subscribe("fal-ai/nano-banana/edit", {
       input: {
         prompt: prompt,
-        image_urls: [processedImageUrl], // Use cleaned image for try-on
+        image_urls: [processedImageUrl, ...jewelryImageUrls], // Include face image + jewelry images
         num_images: 1,
         output_format: "jpeg",
         aspect_ratio: "3:4" // Portrait aspect ratio suitable for jewelry try-on

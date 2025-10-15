@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 
 import { useKioskJourney } from '@/components/KioskJourneyProvider';
 import type { JewelryItem, VirtualTryOnResponse } from '@/lib/types';
+import { jewelryCollection } from '@/lib/jewelry-data';
 
 type TryOnStatus = 'idle' | 'cleaning' | 'loading' | 'success' | 'error' | 'missing-face';
 type StyleTag = 'Bold' | 'Confident' | 'Elegant' | 'Modern';
@@ -27,6 +28,7 @@ interface Celebrity {
 }
 
 const CELEBRITIES: Celebrity[] = [
+  // Female Celebrities
   {
     id: 'madhuridixit',
     name: 'Madhuri Dixit',
@@ -34,7 +36,7 @@ const CELEBRITIES: Celebrity[] = [
     gender: 'female',
     styleMatch: 95,
     description: 'Timeless elegance with traditional and modern fusion',
-    styles: ['Elegant', 'Confident'],
+    styles: ['Elegant'],
     occasions: ['Formal', 'Wedding']
   },
   {
@@ -44,9 +46,30 @@ const CELEBRITIES: Celebrity[] = [
     gender: 'female',
     styleMatch: 90,
     description: 'Contemporary chic with minimalist sophistication',
-    styles: ['Modern', 'Bold'],
+    styles: ['Modern'],
     occasions: ['Party', 'Casual']
   },
+  {
+    id: 'diamirza',
+    name: 'Dia Mirza',
+    image: '/celebrity/female/diamirza.jfif',
+    gender: 'female',
+    styleMatch: 88,
+    description: 'Bold and confident with statement pieces',
+    styles: ['Bold'],
+    occasions: ['Party', 'Formal']
+  },
+  {
+    id: 'dishis',
+    name: 'Disha Patani',
+    image: '/celebrity/female/dishis.jpg',
+    gender: 'female',
+    styleMatch: 92,
+    description: 'Confident and sophisticated style',
+    styles: ['Confident'],
+    occasions: ['Wedding', 'Formal']
+  },
+  // Male Celebrities
   {
     id: 'apdhillon',
     name: 'AP Dhillon',
@@ -54,7 +77,7 @@ const CELEBRITIES: Celebrity[] = [
     gender: 'male',
     styleMatch: 88,
     description: 'Urban cool with statement accessories',
-    styles: ['Bold', 'Modern'],
+    styles: ['Modern'],
     occasions: ['Party', 'Casual']
   },
   {
@@ -64,8 +87,28 @@ const CELEBRITIES: Celebrity[] = [
     gender: 'male',
     styleMatch: 92,
     description: 'Bold luxury with street-style edge',
-    styles: ['Bold', 'Confident'],
+    styles: ['Bold'],
     occasions: ['Party', 'Casual']
+  },
+  {
+    id: 'ranbeersingh',
+    name: 'Ranveer Singh',
+    image: '/celebrity/male/ranbeersingh.jpg',
+    gender: 'male',
+    styleMatch: 85,
+    description: 'Elegant and refined with classic appeal',
+    styles: ['Elegant'],
+    occasions: ['Formal', 'Wedding']
+  },
+  {
+    id: 'ranbirkapoor',
+    name: 'Ranbir Kapoor',
+    image: '/celebrity/male/ranbirkapoor.jfif',
+    gender: 'male',
+    styleMatch: 90,
+    description: 'Confident and charismatic style',
+    styles: ['Confident'],
+    occasions: ['Formal', 'Party']
   }
 ];
 
@@ -81,6 +124,10 @@ export default function TryOnResultsPage() {
     lastTryOn,
     setLastTryOn,
     toggleJewelry,
+    recommendedJewelry,
+    toggleRecommendedJewelry,
+    savedLooks,
+    addSavedLook,
     hydrateComplete,
   } = useKioskJourney();
 
@@ -196,35 +243,36 @@ export default function TryOnResultsPage() {
     return selectedJewelry.reduce((sum, item) => sum + (item.price ?? 0), 0);
   }, [selectedJewelry]);
 
-  // Match celebrities based on selected styles, occasions, and gender
+  // Match celebrities based on selected styles - one celebrity per style
   const matchedCelebrities = useMemo(() => {
-    const genderFilteredCelebrities = userGender
-      ? CELEBRITIES.filter(c => c.gender === userGender)
-      : CELEBRITIES;
-
-    return genderFilteredCelebrities.map(celebrity => {
-      const styleMatches = selectedStyles.filter(style => celebrity.styles.includes(style)).length;
-      const occasionMatches = selectedOccasions.filter(occ => celebrity.occasions.includes(occ)).length;
-      const totalMatches = styleMatches + occasionMatches;
-      const maxMatches = selectedStyles.length + selectedOccasions.length;
-
-      // Calculate match percentage with 50% minimum
-      const calculatedPercentage = maxMatches > 0 ? (totalMatches / maxMatches) * 100 : celebrity.styleMatch;
-      const matchPercentage = Math.max(50, Math.round(calculatedPercentage));
-
-      return {
+    if (!userGender) return [];
+    
+    const genderFilteredCelebrities = CELEBRITIES.filter(c => c.gender === userGender);
+    
+    // For each selected style, find the celebrity that matches that style
+    const styleMatches = selectedStyles.map(style => {
+      const celebrity = genderFilteredCelebrities.find(c => c.styles.includes(style));
+      return celebrity ? {
         ...celebrity,
-        matchPercentage,
-        styleMatches,
-        occasionMatches
-      };
-    }).sort((a, b) => b.matchPercentage - a.matchPercentage);
-  }, [selectedStyles, selectedOccasions, userGender]);
+        matchedStyle: style,
+        matchPercentage: celebrity.styleMatch
+      } : null;
+    }).filter(Boolean);
+
+    return styleMatches;
+  }, [selectedStyles, userGender]);
 
   const topCelebrity = matchedCelebrities[0];
 
+  // Jewelry recommendations - same for all styles
+  const jewelryRecommendations = useMemo(() => {
+    const necklaces = jewelryCollection.filter(item => item.category === 'necklace').slice(0, 2);
+    const earrings = jewelryCollection.filter(item => item.category === 'earrings').slice(0, 2);
+    return [...necklaces, ...earrings];
+  }, []);
+
   const toggleStyle = (style: StyleTag) => {
-    setSelectedStyles(prev => (prev.includes(style) ? prev.filter(s => s !== style) : [...prev, style]));
+    setSelectedStyles([style]); // Only allow one style at a time
   };
 
   const toggleOccasion = (occasion: OccasionTag) => {
@@ -289,6 +337,35 @@ export default function TryOnResultsPage() {
           <div className="w-3 h-3 rounded-full bg-muted"></div>
           <div className="w-3 h-3 rounded-full bg-muted"></div>
         </div>
+
+        {/* Gender Selection
+        <div className="card-luxury max-w-2xl mx-auto w-full">
+          <h2 className="text-xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+            Select Your Gender
+          </h2>
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => setUserGender('female')}
+              className={`px-6 py-3 border-2 rounded-lg font-medium transition-all ${
+                userGender === 'female'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border hover:border-primary'
+              }`}
+            >
+              Female
+            </button>
+            <button
+              onClick={() => setUserGender('male')}
+              className={`px-6 py-3 border-2 rounded-lg font-medium transition-all ${
+                userGender === 'male'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'border-border hover:border-primary'
+              }`}
+            >
+              Male
+            </button>
+          </div>
+        </div> */}
 
         {showMissingFaceNotice && (
           <div className="card-luxury border-warning text-center max-w-2xl mx-auto">
@@ -420,7 +497,7 @@ export default function TryOnResultsPage() {
               <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center mb-4 overflow-hidden relative">
                 {topCelebrity && userGender ? (
                   <>
-                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-cover" />
+                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-contain" />
                     <button
                       onClick={() => setShowComparison(true)}
                       className="absolute bottom-4 right-4 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover transition-all shadow-lg font-semibold text-sm"
@@ -439,7 +516,6 @@ export default function TryOnResultsPage() {
               </div>
               {topCelebrity && userGender && (
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold mb-2">{topCelebrity.name}</h3>
                   <p className="text-sm text-muted-foreground mb-3">{topCelebrity.description}</p>
                   <div className="w-full h-2 bg-muted rounded-full overflow-hidden mb-2">
                     <div className="h-full gradient-gold animate-shimmer relative" style={{ width: `${topCelebrity.matchPercentage}%` }}></div>
@@ -496,6 +572,60 @@ export default function TryOnResultsPage() {
           </div>
         </div>
 
+        {/* Jewelry Recommendations */}
+        {selectedStyles.length > 0 && (
+          <div className="card-luxury max-w-5xl mx-auto w-full">
+            <h2 className="text-xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
+              Recommended Jewelry for {selectedStyles[0]} Style
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {jewelryRecommendations.map((item) => {
+                const isSelected = recommendedJewelry.find(selected => selected.id === item.id);
+                return (
+                  <div 
+                    key={item.id} 
+                    className={`text-center cursor-pointer transition-all ${
+                      isSelected ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => toggleRecommendedJewelry(item)}
+                  >
+                    <div className={`aspect-square bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl mb-3 overflow-hidden relative ${
+                      isSelected ? 'ring-2 ring-primary' : ''
+                    }`}>
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover"
+                      />
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="font-medium text-sm mb-1">{item.name}</h3>
+                    <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
+                    <p className="text-sm font-semibold text-gold">${item.price}</p>
+                    <button 
+                      className={`mt-2 px-3 py-1 text-xs rounded-full transition-colors ${
+                        isSelected 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-border text-muted-foreground hover:bg-primary hover:text-primary-foreground'
+                      }`}
+                    >
+                      {isSelected ? 'Selected' : 'Select'}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Selected Jewelry - Hidden as requested */}
+        {/* 
         <div className="card-luxury max-w-2xl mx-auto w-full">
           <h2 className="text-xl font-semibold text-gold text-center mb-6" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
             Selected Jewelry
@@ -551,6 +681,7 @@ export default function TryOnResultsPage() {
             </span>
           </div>
         </div>
+        */}
 
         <div className="flex flex-wrap gap-4 justify-center">
           <Link href="/kiosk/jewelry" className="btn-luxury btn-silver text-lg px-8">
@@ -559,6 +690,24 @@ export default function TryOnResultsPage() {
             </svg>
             Try Different Jewelry
           </Link>
+          <button
+            onClick={() => {
+              if (recommendedJewelry.length > 0) {
+                addSavedLook(recommendedJewelry);
+                console.log('Look saved with recommended jewelry:', recommendedJewelry);
+              } else {
+                console.log('No recommended jewelry selected to save');
+              }
+            }}
+            disabled={status === 'loading' || status === 'cleaning' || showMissingFaceNotice}
+            className={`btn-luxury btn-gold text-lg px-8 ${status === 'loading' || status === 'cleaning' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-disabled={status === 'loading' || status === 'cleaning' || showMissingFaceNotice}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+            </svg>
+            {status === 'loading' || status === 'cleaning' ? 'Processing...' : 'Save Look'}
+          </button>
           <Link
             href="/kiosk/purchase"
             onClick={(event) => {
@@ -566,13 +715,13 @@ export default function TryOnResultsPage() {
                 event.preventDefault();
               }
             }}
-            className={`btn-luxury btn-gold text-lg px-8 ${status === 'loading' || status === 'cleaning' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`btn-luxury btn-silver text-lg px-8 ${status === 'loading' || status === 'cleaning' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
             aria-disabled={status === 'loading' || status === 'cleaning' || showMissingFaceNotice}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            {status === 'loading' || status === 'cleaning' ? 'Processing...' : 'Continue to Purchase'}
+            Next Page
           </Link>
         </div>
       </main>
@@ -674,16 +823,14 @@ export default function TryOnResultsPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-center mb-4">{topCelebrity.name}</h3>
                   <div className="aspect-[4/3] rounded-xl overflow-hidden border-2 border-gold shadow-lg">
-                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-cover" />
+                    <img src={topCelebrity.image} alt={topCelebrity.name} className="w-full h-full object-contain" />
                   </div>
                   <div className="mt-4 text-center">
                     <p className="text-sm text-muted-foreground mb-2">Celebrity Style</p>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {topCelebrity.styles.map((style: StyleTag) => (
-                        <span key={style} className="text-xs px-3 py-1 bg-primary/20 text-primary rounded-full font-semibold">
-                          {style}
-                        </span>
-                      ))}
+                      <span className="text-xs px-3 py-1 bg-primary/20 text-primary rounded-full font-semibold">
+                        {topCelebrity.matchedStyle}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -700,7 +847,7 @@ export default function TryOnResultsPage() {
                   <div className="h-16 w-px bg-border mx-6"></div>
                   <div className="text-center flex-1">
                     <p className="text-3xl font-bold text-gold mb-1" style={{ fontFamily: 'var(--font-playfair), Georgia, serif' }}>
-                      {topCelebrity.styleMatches + topCelebrity.occasionMatches}
+                      1
                     </p>
                     <p className="text-sm text-muted-foreground">Common Preferences</p>
                   </div>
@@ -717,12 +864,6 @@ export default function TryOnResultsPage() {
                 >
                   Close
                 </button>
-                <Link
-                  href="/kiosk/purchase"
-                  className="btn-luxury btn-gold px-6"
-                >
-                  Continue to Purchase
-                </Link>
               </div>
             </div>
           </div>
