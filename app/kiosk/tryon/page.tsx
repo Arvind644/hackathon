@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { useKioskJourney } from '@/components/KioskJourneyProvider';
 import type { JewelryItem, VirtualTryOnResponse } from '@/lib/types';
 
-type TryOnStatus = 'idle' | 'loading' | 'success' | 'error' | 'missing-face';
+type TryOnStatus = 'idle' | 'cleaning' | 'loading' | 'success' | 'error' | 'missing-face';
 type StyleTag = 'Bold' | 'Confident' | 'Elegant' | 'Modern';
 type OccasionTag = 'Formal' | 'Party' | 'Casual' | 'Wedding';
 
@@ -137,6 +137,10 @@ export default function TryOnResultsPage() {
         // Use only the last selected jewelry item for AI generation
         const lastJewelry = selectedJewelry[selectedJewelry.length - 1];
 
+        // First, clean the image
+        setStatus('cleaning');
+        console.log('Starting image cleaning process...');
+
         const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,6 +149,7 @@ export default function TryOnResultsPage() {
             selectedJewelry: [lastJewelry], // Only send the last jewelry item
             generate3D: false,
             sessionId,
+            skipCleaning: false, // Enable image cleaning
           }),
           signal: controller.signal,
         });
@@ -344,13 +349,18 @@ export default function TryOnResultsPage() {
               Your AI Try-On Result
             </h2>
             <div className="w-full aspect-[4/3] bg-gradient-to-br from-gray-900/10 to-gray-900/20 rounded-xl flex items-center justify-center relative overflow-hidden">
-              {(status === 'idle' || status === 'loading') && (
+              {(status === 'idle' || status === 'loading' || status === 'cleaning') && (
                 <div className="text-center">
                   <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                   <p className="text-sm text-muted-foreground">
-                    {status === 'idle' ? 'Preparing...' : 'Generating your look...'}
+                    {status === 'idle' ? 'Preparing...' : 
+                     status === 'cleaning' ? 'Cleaning your photo...' : 
+                     'Generating your look...'}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">This may take 10-30 seconds</p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {status === 'cleaning' ? 'Removing background and enhancing image...' : 
+                     'This may take 10-30 seconds'}
+                  </p>
                 </div>
               )}
               {status === 'error' && (
@@ -552,17 +562,17 @@ export default function TryOnResultsPage() {
           <Link
             href="/kiosk/purchase"
             onClick={(event) => {
-              if (status === 'loading' || showMissingFaceNotice) {
+              if (status === 'loading' || status === 'cleaning' || showMissingFaceNotice) {
                 event.preventDefault();
               }
             }}
-            className={`btn-luxury btn-gold text-lg px-8 ${status === 'loading' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
-            aria-disabled={status === 'loading' || showMissingFaceNotice}
+            className={`btn-luxury btn-gold text-lg px-8 ${status === 'loading' || status === 'cleaning' || showMissingFaceNotice ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-disabled={status === 'loading' || status === 'cleaning' || showMissingFaceNotice}
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            {status === 'loading' ? 'Generating...' : 'Continue to Purchase'}
+            {status === 'loading' || status === 'cleaning' ? 'Processing...' : 'Continue to Purchase'}
           </Link>
         </div>
       </main>

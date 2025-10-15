@@ -18,6 +18,12 @@ model VirtualTryOn {
   // Original face image
   faceImageUrl String
 
+  // Cleaned/enhanced image (optional)
+  cleanedImageUrl String?
+
+  // Original image URL (for reference)
+  originalImageUrl String?
+
   // Generated try-on result
   tryOnImageUrl String
 

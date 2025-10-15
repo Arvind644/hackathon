@@ -26,6 +26,8 @@ export interface VirtualTryOnResponse {
   threeDModel?: string;
   model_used: string;
   processing_time: number;
+  cleanedImage?: string;
+  originalImage?: string;
 }
 
 export interface Tripo3DFile {
