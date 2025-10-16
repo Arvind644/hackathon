@@ -15,6 +15,13 @@ Create a responsive virtual try-on web app for Evol Jewels that lets users try j
 5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen 
 This flexible deployment (kiosk + mobile) maximizes reach across retail locations, trade shows, and online channels.
 
+## 🚀 5-Step User Journey
+
+1. **Approach**: Akhil approaches the kiosk and sees his reflection in the display
+2. **Capture**: He taps to start, uploads a selfie using the camera, then browses Evol's jewelry collection
+3. **Try-On**: He selects a diamond necklace and gold earrings - within 8 seconds, he sees himself wearing both pieces with perfect facial preservation
+4. **Match**: On the side, it shows [Ranveer Singh] in a similar look, displays his vibe & recommends a few more jewelry pieces from Evol's collection & takes him back to step 2
+5. **Share**: Once he finds an impressive design, he saves the look to his gallery, and scans the QR code to continue shopping on his phone with his personalized recommendations. He can also email/message it to himself
 
 ## Dev Instructions:
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
