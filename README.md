@@ -25,7 +25,6 @@ This flexible deployment (kiosk + mobile) maximizes reach across retail location
 
 ## 📊 Database Schema
 
-![Database Schema](public/database-diagram.drawio.png)
 ![WhatsApp Image 2025-10-15 at 21 31 14](https://github.com/user-attachments/assets/8b139797-9658-4fb3-8593-a2788662ce7c)
 
 The system uses a PostgreSQL database with two main entities:
