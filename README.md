@@ -1,4 +1,9 @@
 
+# AI Jewelry Stylist Kiosk 🎭💎
+
+> **Live Demo**: [https://hackathon-beryl-iota.vercel.app/](https://hackathon-beryl-iota.vercel.app/)
+
+An AI-powered jewelry recommendation system that analyzes user photos and generates personalized jewelry suggestions using advanced computer vision and celebrity style matching.
 ## Goal 
 Create a responsive virtual try-on web app for Evol Jewels that lets users try jewelry using only sliders and clicks. The app matches the brand’s colors, uses LLMs for background removal and image generation, and includes an easy lead capture step through QR or email for later marketing.
 
