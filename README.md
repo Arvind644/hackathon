@@ -23,6 +23,14 @@ This flexible deployment (kiosk + mobile) maximizes reach across retail location
 4. **Match**: On the side, it shows [Ranveer Singh] in a similar look, displays his vibe & recommends a few more jewelry pieces from Evol's collection & takes him back to step 2
 5. **Share**: Once he finds an impressive design, he saves the look to his gallery, and scans the QR code to continue shopping on his phone with his personalized recommendations. He can also email/message it to himself
 
+## 📊 Database Schema
+
+![Database Schema](public/database-diagram.drawio.png)
+
+The system uses a PostgreSQL database with two main entities:
+- **VirtualTryOn**: Stores try-on session results with AI processing metadata
+- **JewelryCollection**: Manages the jewelry catalog with usage analytics
+
 ## Dev Instructions:
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
