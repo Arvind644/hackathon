@@ -2,10 +2,14 @@
 ## Goal 
 Gen AI powered, celeb look & jewelry try on webapp to increase evoljewels.com's sales via booth marketing
 
-## Tech Stack
-1. Next.JS
-2. HTML, Tailwind CSS
-3. DB: Postgres/Prisma
+## Tech StackTech Stack & Frameworks Used:
+1. Frontend Stack: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS 4 for modern, responsive UI with smooth animations
+2. AI Integration: fal.ai client with Nanobanana for face-preserving try-on 
+3. Database: Prisma ORM + PostgreSQL for reliable data storage (try-on results, jewelry catalog, user sessions)
+4. Image Processing: React Webcam + Dropzone for seamless photo capture and upload
+5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen 
+This flexible deployment (kiosk + mobile) maximizes reach across retail locations, trade shows, and online channels.
+
 
 ## Dev Instructions:
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
