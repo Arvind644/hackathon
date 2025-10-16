@@ -264,12 +264,40 @@ export default function TryOnResultsPage() {
 
   const topCelebrity = matchedCelebrities[0];
 
-  // Jewelry recommendations - same for all styles
+  // Jewelry recommendations - different for each style
   const jewelryRecommendations = useMemo(() => {
-    const necklaces = jewelryCollection.filter(item => item.category === 'necklace').slice(0, 2);
-    const earrings = jewelryCollection.filter(item => item.category === 'earrings').slice(0, 2);
+    if (selectedStyles.length === 0) return [];
+    
+    const selectedStyle = selectedStyles[0];
+    
+    // Map StyleTag to jewelry style
+    const styleMapping: Record<StyleTag, string[]> = {
+      'Bold': ['modern', 'vintage'], // Bold styles prefer modern and vintage jewelry
+      'Confident': ['modern', 'classic'], // Confident styles prefer modern and classic jewelry
+      'Elegant': ['classic', 'vintage'], // Elegant styles prefer classic and vintage jewelry
+      'Modern': ['modern', 'classic'] // Modern styles prefer modern and classic jewelry
+    };
+    
+    const preferredStyles = styleMapping[selectedStyle];
+    
+    // Filter jewelry by preferred styles
+    const filteredJewelry = jewelryCollection.filter(item => 
+      item.style && preferredStyles.includes(item.style)
+    );
+    
+    // If we don't have enough items with preferred styles, fall back to all jewelry
+    if (filteredJewelry.length < 4) {
+      const necklaces = jewelryCollection.filter(item => item.category === 'necklace').slice(0, 2);
+      const earrings = jewelryCollection.filter(item => item.category === 'earrings').slice(0, 2);
+      return [...necklaces, ...earrings];
+    }
+    
+    // Return 2 necklaces and 2 earrings from filtered jewelry
+    const necklaces = filteredJewelry.filter(item => item.category === 'necklace').slice(0, 2);
+    const earrings = filteredJewelry.filter(item => item.category === 'earrings').slice(0, 2);
+    
     return [...necklaces, ...earrings];
-  }, []);
+  }, [selectedStyles]);
 
   const toggleStyle = (style: StyleTag) => {
     setSelectedStyles([style]); // Only allow one style at a time
