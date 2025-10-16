@@ -1,6 +1,6 @@
 
 ## Goal 
-Gen AI powered, celeb look & jewelry try on webapp to increase evoljewels.com's sales via booth marketing
+Create a responsive virtual try-on web app for Evol Jewels that lets users try jewelry using only sliders and clicks. The app matches the brand’s colors, uses LLMs for background removal and image generation, and includes an easy lead capture step through QR or email for later marketing.
 
 ## Tech StackTech Stack & Frameworks Used:
 1. Frontend Stack: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS 4 for modern, responsive UI with smooth animations
