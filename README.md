@@ -12,7 +12,8 @@ Create a responsive virtual try-on web app for Evol Jewels that lets users try j
 2. AI Integration: fal.ai client with Nanobanana for face-preserving try-on 
 3. Database: Prisma ORM + PostgreSQL for reliable data storage (try-on results, jewelry catalog, user sessions)
 4. Image Processing: React Webcam + Dropzone for seamless photo capture and upload
-5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen 
+5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen
+6. Email Integration: SendGrid
 This flexible deployment (kiosk + mobile) maximizes reach across retail locations, trade shows, and online channels.
 
 ## 🚀 5-Step User Journey
