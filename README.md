@@ -6,6 +6,7 @@
 An AI-powered jewelry recommendation system that analyzes user photos and generates personalized jewelry suggestions using advanced computer vision and celebrity style matching.
 ## Goal 
 Create a responsive virtual try-on web app for Evol Jewels that lets users try jewelry using only sliders and clicks. The app matches the brand’s colors, uses LLMs for background removal and image generation, and includes an easy lead capture step through QR or email for later marketing.
+<img width="1092" height="614" alt="Screenshot 2025-10-21 at 11 49 19 AM" src="https://github.com/user-attachments/assets/ef1104a2-ee1b-411d-b8d5-86e538b6cd1a" />
 
 ## Tech StackTech Stack & Frameworks Used:
 1. Frontend Stack: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS 4 for modern, responsive UI with smooth animations
@@ -15,6 +16,7 @@ Create a responsive virtual try-on web app for Evol Jewels that lets users try j
 5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen
 6. Email Integration: SendGrid
 This flexible deployment (kiosk + mobile) maximizes reach across retail locations, trade shows, and online channels.
+<img width="1084" height="600" alt="Screenshot 2025-10-21 at 11 49 32 AM" src="https://github.com/user-attachments/assets/a81051c6-7418-4c70-ac79-ca4661e4ae6e" />
 
 ## 🚀 5-Step User Journey
 
@@ -23,6 +25,7 @@ This flexible deployment (kiosk + mobile) maximizes reach across retail location
 3. **Try-On**: He selects a diamond necklace and gold earrings - within 8 seconds, he sees himself wearing both pieces with perfect facial preservation
 4. **Match**: On the side, it shows [Ranveer Singh] in a similar look, displays his vibe & recommends a few more jewelry pieces from Evol's collection & takes him back to step 2
 5. **Share**: Once he finds an impressive design, he saves the look to his gallery, and scans the QR code to continue shopping on his phone with his personalized recommendations. He can also email/message it to himself
+<img width="1044" height="561" alt="Screenshot 2025-10-21 at 11 49 47 AM" src="https://github.com/user-attachments/assets/38f64d42-b3cf-4ab0-9932-b76aec9ce6d0" />
 
 ## 📊 Database Schema
 
