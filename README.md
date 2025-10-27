@@ -14,7 +14,7 @@ Create a responsive virtual try-on web app for Evol Jewels that lets users try j
 3. Database: Prisma ORM + PostgreSQL for reliable data storage (try-on results, jewelry catalog, user sessions)
 4. Image Processing: React Webcam + Dropzone for seamless photo capture and upload
 5. Kiosk Optimization: Progressive Web App architecture ensures smooth performance on large touchscreens whether 55 inches, or a projector screen
-6. Email Integration: SendGrid
+6. Email Integration: NodeMailer
 This flexible deployment (kiosk + mobile) maximizes reach across retail locations, trade shows, and online channels.
 <img width="1084" height="600" alt="Screenshot 2025-10-21 at 11 49 32 AM" src="https://github.com/user-attachments/assets/a81051c6-7418-4c70-ac79-ca4661e4ae6e" />
 
