@@ -103,7 +103,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Next.js](https://nextjs.org/) and [Vercel](https://vercel.com/) for the amazing development platform
 
 ## 🙏 Hackathon Outcome
-- Fountane for awarding us $500 & organising this hackathon (Team bappi lahiri for the win!)  
 ![EC5BFE0E-15B1-4925-A281-092DE7C2ABE9](https://github.com/user-attachments/assets/f1292eb7-3c22-476c-af0a-caed558dcf88)
 <img width="573" height="566" alt="Screenshot 2025-11-02 at 2 06 43 PM" src="https://github.com/user-attachments/assets/30e701a0-a51c-46c8-9446-e16d4fc15dd2" />
 
