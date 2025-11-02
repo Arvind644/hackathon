@@ -108,7 +108,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 <img width="573" height="566" alt="Screenshot 2025-11-02 at 2 06 43 PM" src="https://github.com/user-attachments/assets/30e701a0-a51c-46c8-9446-e16d4fc15dd2" />
 
 Social media post links on this:
-1. [Twitter](⁠https://x.com/fueledfountane/status/1983096659610611797)
-2. [Linkedin](⁠https://www.linkedin.com/feed/update/urn:li:activity:7388863179310804992)
-3. [Instagram](⁠https://www.instagram.com/p/DQWMcUYj7-s)
+1. [Twitter] - ⁠https://x.com/fueledfountane/status/1983096659610611797
+2. [Linkedin] - ⁠https://www.linkedin.com/feed/update/urn:li:activity:7388863179310804992
+3. [Instagram]- ⁠https://www.instagram.com/p/DQWMcUYj7-s
 
