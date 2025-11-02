@@ -101,7 +101,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [Evol Jewels](https://evoljewels.com/) for providing the jewelry catalog in a very structured dataset
 - [Fal AI](https://fal.ai/) for the AI image generation capabilities
 - [Next.js](https://nextjs.org/) and [Vercel](https://vercel.com/) for the amazing development platform
-- Fountane for awarding us $500 & organising this hackathon (Team bappi lahiri for the win!)
-  
+
+## 🙏 Hackathon Outcome
+- Fountane for awarding us $500 & organising this hackathon (Team bappi lahiri for the win!)  
 ![EC5BFE0E-15B1-4925-A281-092DE7C2ABE9](https://github.com/user-attachments/assets/f1292eb7-3c22-476c-af0a-caed558dcf88)
+<img width="573" height="566" alt="Screenshot 2025-11-02 at 2 06 43 PM" src="https://github.com/user-attachments/assets/30e701a0-a51c-46c8-9446-e16d4fc15dd2" />
+Social media posts are up:
+1.⁠ ⁠https://x.com/fueledfountane/status/1983096659610611797
+2. ⁠https://www.linkedin.com/feed/update/urn:li:activity:7388863179310804992
+3.⁠ ⁠https://www.instagram.com/p/DQWMcUYj7-s
 
